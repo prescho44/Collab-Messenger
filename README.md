@@ -7,64 +7,24 @@ This tiered project structure separates concerns into distinct layers for a Reac
 ## Proposed Structure
 
 ```
-collab-messenger-app/
-├── public/                  # Static assets served by Vite
-│   ├── index.html           # Root HTML file (Vite injects scripts here)
-│   ├── favicon.ico
-│   └── vite.svg             # Default Vite logo (replace as needed)
-├── src/
-│   ├── api/                 # Data access layer (Firebase interactions)
-│   │   ├── firebaseConfig.js # Firebase initialization and config
-│   │   ├── userApi.js       # User-related API calls (e.g., fetch, update)
-│   │   ├── teamApi.js       # Team-related API calls
-│   │   ├── channelApi.js    # Channel-related API calls
-│   │   └── meetingApi.js    # Meeting-related API calls (optional)
-│   ├── components/          # Presentation layer (React components)
-│   │   ├── common/          # Reusable UI components
-│   │   │   ├── Button.jsx   # Functional component with props
-│   │   │   ├── Input.jsx    # Reusable input field
-│   │   │   └── Message.jsx  # Message display component
-│   │   ├── public/          # Public-facing components
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   └── LandingPage.jsx
-│   │   └── private/         # Authenticated components
-│   │       ├── Profile.jsx
-│   │       ├── TeamView.jsx
-│   │       ├── ChannelView.jsx
-│   │       └── MeetingView.jsx # Optional
-│   ├── contexts/            # React Context for state management (optional)
-│   │   ├── AuthContext.jsx  # Authentication state
-│   │   └── UserContext.jsx  # User data state
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useAuth.js       # Manage auth state with Firebase
-│   │   ├── useUser.js       # Fetch/update user data
-│   │   ├── useChannel.js    # Handle channel data and messages
-│   │   └── useMeeting.js    # Meeting logic (optional)
-│   ├── services/            # Business logic layer
-│   │   ├── authService.js   # Authentication logic (Firebase Auth)
-│   │   ├── userService.js   # User management logic
-│   │   ├── teamService.js   # Team management logic
-│   │   ├── channelService.js # Channel management logic
-│   │   └── meetingService.js # Meeting logic (optional)
-│   ├── utils/               # Utility functions
-│   │   ├── validation.js    # Form/email/username validation
-│   │   ├── formatDate.js    # Date/time formatting
-│   │   └── constants.js     # App-wide constants (e.g., statuses)
-│   ├── assets/              # Static assets
-│   │   ├── images/
-│   │   └── css/
-│   │       ├── global.css   # Global styles
-│   │       └── theme.css    # Theming (optional)
-│   ├── routes/              # React Router routes
-│   │   ├── PublicRoutes.jsx # Unauthenticated routes
-│   │   └── PrivateRoutes.jsx # Authenticated routes (protected)
-│   ├── App.jsx              # Root component (with Router)
-│   └── main.jsx             # Entry point (renders App.jsx)
-├── vite.config.js           # Vite configuration
-├── package.json             # Dependencies (React, Vite, Firebase, etc.)
-├── README.md                # Project documentation
-└── .gitignore               # Git ignore rules
+/collab-messenger
+ ├── /src
+ │   ├── /components      → UI elements (Button, Input, Avatar, Message)
+ │   ├── /features        → Self-contained features (auth, chat, teams)
+ │   │   ├── /auth        → Handles login, register, user profile
+ │   │   ├── /chat        → Chat UI, message handling
+ │   │   ├── /teams       → Team and channel management
+ │   │   ├── /meetings    → (Optional) Voice/video call integration
+ │   ├── /services       → Firebase API calls
+ │   ├── /hooks          → Custom React hooks for fetching/managing state
+ │   ├── /pages          → Page-level components (Dashboard, TeamView, ChatView)
+ │   ├── /context        → Global state using React Context (or Zustand)
+ │   ├── App.jsx         → Main app entry
+ │   ├── main.jsx        → React root render
+ │   ├── firebase.js     → Firebase config & initialization
+ ├── .env                → Firebase credentials (hidden from Git)
+ ├── package.json        → Dependencies
+ ├── README.md           → Project setup and guide
 ```
 
 ## Layer Breakdown

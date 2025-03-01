@@ -1,35 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './App.css';
+import { AppContext } from './store/app.context';
+import { useEffect, useState } from 'react';
+import Login from './features/auth/Login';
+import Register from './features/auth/Register';
+import { auth } from './firebaseConfig';
+import './App.css';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { getUserData } from './services/user.service';
+import Private from './components/Private';
+import Public from './components/Public';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [appState, setAppState] = useState({
+    user: null,
+    userData: null,
+  });
+
+  const [user, loading, error] = useAuthState(auth);
+
+  if (appState.user !== user) {
+    setAppState({
+      ...appState,
+      user,
+    });
+  }
+  
+  loading && console.log('loading user');
+  error && console.log('error loading user');
+
+  useEffect(() => {
+    if (!user) return;
+
+    getUserData(appState.user.uid)
+      .then((data) => {
+        const userData = data[Object.keys(data)[0]];
+        setAppState({
+          ...appState,
+          userData,
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [user]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <BrowserRouter>
+      <AppContext.Provider value={{ ...appState, setAppState }}>
+        <Routes>
+          <Route element={<Public />}>
+            {/* user is not logged in */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+          <Route element={<Private />}>{/* if user is logged */}</Route>
+        </Routes>
+      </AppContext.Provider>
+      <Route path="*" element={<NotFound />} />
+    </BrowserRouter>
+  );
+};
 
-export default App
+export default App;
