@@ -1,16 +1,12 @@
-import { useContext } from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppContext } from '../store/app.context';
+import Authenticated from '../features/auth/Authenticated';
 
 const Public = () => {
-  const { user } = useContext(AppContext);
   return (
     <>
-      {!user && (
-        <div>
-          <Outlet />
-        </div>
-      )}
+      <div>
+        <Outlet />
+      </div>
     </>
   );
 };
