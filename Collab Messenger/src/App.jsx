@@ -10,6 +10,9 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { getUserData } from './services/user.service';
 import Private from './components/Private';
 import Public from './components/Public';
+import NotFound from './components/NotFound';
+import Home from './pages/Home';
+import Profile from './features/auth/Profile';
 
 const App = () => {
   const [appState, setAppState] = useState({
@@ -25,12 +28,12 @@ const App = () => {
       user,
     });
   }
-  
-  loading && console.log('loading user');
-  error && console.log('error loading user');
 
   useEffect(() => {
     if (!user) return;
+
+    loading && console.log('loading user');
+    error && console.log('error loading user');
 
     getUserData(appState.user.uid)
       .then((data) => {
@@ -51,13 +54,18 @@ const App = () => {
         <Routes>
           <Route element={<Public />}>
             {/* user is not logged in */}
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
-          <Route element={<Private />}>{/* if user is logged */}</Route>
+          <Route element={<Private />}>
+            {/* if user is logged */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/" element={<Home />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AppContext.Provider>
-      <Route path="*" element={<NotFound />} />
     </BrowserRouter>
   );
 };
