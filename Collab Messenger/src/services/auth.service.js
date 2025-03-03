@@ -3,7 +3,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { auth } from '../configs/firebaseConfig';
 
 export const registerUser = (email, password) => {
   return createUserWithEmailAndPassword(auth, email, password);

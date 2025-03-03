@@ -1,5 +1,5 @@
 import { get, set, ref, query, equalTo, orderByChild } from 'firebase/database';
-import { db } from '../firebaseConfig';
+import { db } from '../configs/firebaseConfig';
 
 
 export const createUserHandle = async (handle, uid, email, photo, phoneNumber) => {

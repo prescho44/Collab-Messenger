@@ -4,12 +4,13 @@ import { AppContext } from './store/app.context';
 import { useEffect, useState } from 'react';
 import Login from './features/auth/Login';
 import Register from './features/auth/Register';
-import { auth } from './firebaseConfig';
+import { auth } from './configs/firebaseConfig';
 import './App.css';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { getUserData } from './services/user.service';
+import { getUserData } from './services/users.service';
 import Private from './components/Private';
 import Public from './components/Public';
+import Header from './components/Header/Header';
 
 const App = () => {
   const [appState, setAppState] = useState({
@@ -47,17 +48,19 @@ const App = () => {
 
   return (
     <BrowserRouter>
+      <Header />
+
       <AppContext.Provider value={{ ...appState, setAppState }}>
         <Routes>
           <Route element={<Public />}>
             {/* user is not logged in */}
+            <Route path="/" element={<Public />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
           <Route element={<Private />}>{/* if user is logged */}</Route>
         </Routes>
       </AppContext.Provider>
-      <Route path="*" element={<NotFound />} />
     </BrowserRouter>
   );
 };
