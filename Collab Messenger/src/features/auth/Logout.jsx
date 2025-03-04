@@ -23,7 +23,7 @@ const Logout = () => {
   };
 
   return (
-    <Button variant="solid" colorScheme="red" onClick={logout}>
+    <Button variant="outline" onClick={logout}>
       Logout
     </Button>
   );

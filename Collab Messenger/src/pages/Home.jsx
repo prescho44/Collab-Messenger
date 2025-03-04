@@ -1,11 +1,14 @@
-import { NavLink } from 'react-router-dom';
-import Logout from '../features/auth/Logout';
+import Chats from "./Chats";
+import { AppContext } from "../store/app.context";
+import { useContext } from "react";
 
 const Home = () => {
+const { user } = useContext(AppContext);
+
   return (
     <div>
- 
-      <h1>Home page!</h1>
+      {user ? <Chats /> : <h1>Welcome to Collab Messenger</h1>}
+      
     </div>
   );
 };
