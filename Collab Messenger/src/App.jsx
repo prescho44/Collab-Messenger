@@ -14,6 +14,7 @@ import NotFound from './components/NotFound';
 import Home from './pages/Home';
 import Profile from './features/auth/Profile';
 import Header from './components/Header/Header';
+import MakeNewChat from './pages/MakeNewChat';
 
 const App = () => {
   const [appState, setAppState] = useState({
@@ -66,6 +67,8 @@ const App = () => {
             {/* if user is logged */}
             <Route path="/profile" element={<Profile />} />
             <Route path="/" element={<Home />} />
+            <Route path="/new-chat" element={<MakeNewChat />} />
+
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

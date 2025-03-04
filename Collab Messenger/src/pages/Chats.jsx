@@ -1,8 +1,10 @@
 import { db } from "../configs/firebaseConfig";
 import { ref, onValue } from "firebase/database";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
+  Button,
   Typography,
   Card,
   CardContent,
@@ -18,6 +20,8 @@ export default function Chats() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const postsRef = ref(db, "teams");
     onValue(postsRef, (snapshot) => {
@@ -25,7 +29,7 @@ export default function Chats() {
       if (postsData) {
         const teamsList = Object.entries(postsData).map(([id, team]) => ({
           id,
-          name: team.name || "Unnamed Team",
+          teamName: team.teamName || "Unnamed Team",
           owner: team.owner || "Unknown Owner",
           channels: team.channels ? Object.keys(team.channels) : [],
           members: team.members ? Object.keys(team.members) : [],
@@ -39,10 +43,30 @@ export default function Chats() {
   }, []);
 
   return (
-    <Box p={5}>
-      <Typography variant="h4" fontWeight="bold" textAlign="center" gutterBottom>
+    <Box
+      p={1}
+      m={0}
+      display="flex"
+      flexDirection="column"
+      alignItems="flex-start" // Align to the left
+      width="100%" // Ensure it takes full width
+    >
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        textAlign="left" // Align text to the left
+        gutterBottom
+      >
         Teams & Chats
       </Typography>
+      <Button
+        variant="outlined"
+        color="primary"
+        sx={{ width: "100%", maxWidth: 20, padding: "8px 16px", mt: 2, mb: 2 }}
+        onClick={() => navigate("/new-chat")} // This will navigate to MakeNewChat page
+      >
+        +
+      </Button>
 
       {loading ? (
         <Stack alignItems="center" justifyContent="center" spacing={2} mt={5}>
@@ -54,16 +78,16 @@ export default function Chats() {
           No teams available
         </Typography>
       ) : (
-        <Grid2 container spacing={3} justifyContent="center">
-          {teams.map((team) => (
+        <Grid2 container spacing={3} justifyContent="flex-start"> {/* Ensure the grid items are aligned left */}
+          {teams.map((team) => ( // Limit to 3 teams
             <Grid2 item xs={12} md={6} lg={4} key={team.id}>
               <Card variant="outlined">
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                    <Avatar sx={{ bgcolor: "teal" }}>{team.name[0]}</Avatar>
+                    <Avatar sx={{ bgcolor: "teal" }}>{team.teamName[0]}</Avatar>
                     <Box>
                       <Typography variant="h6" color="teal">
-                        {team.name}
+                        {team.teamName}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
                         Owner: {team.owner}
@@ -81,9 +105,13 @@ export default function Chats() {
                       team.channels.map((channelId, index) => (
                         <Chip
                           key={index}
-                          label={channelId.length > 15 ? `${channelId.substring(0, 15)}...` : channelId}
-                          color="grey"
-                          size="big"
+                          label={
+                            channelId.length > 15
+                              ? `${channelId.substring(0, 15)}...`
+                              : channelId
+                          }
+                          color="default"
+                          size="small"
                         />
                       ))
                     ) : (

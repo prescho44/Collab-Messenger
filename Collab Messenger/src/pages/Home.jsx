@@ -13,7 +13,15 @@ const Home = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component="main"
+    maxWidth="xs"
+    sx={{
+      width: "100%",
+      marginLeft: "0",
+      marginRight: "0",
+      paddingLeft: "0",
+      paddingRight: "0",
+    }}>
       <Box
         sx={{
           display: "flex",
@@ -27,6 +35,7 @@ const Home = () => {
         {user ? (
           // If user is logged in, show Chats component
           <Chats />
+          
         ) : (
           <div style={{ width: "100%" }}>
             <Typography variant="h5" align="center" gutterBottom>
@@ -58,6 +67,9 @@ const Home = () => {
             >
               Register
             </Button>
+
+            {/* Button to navigate to MakeNewChat */}
+            
           </div>
         )}
       </Box>
