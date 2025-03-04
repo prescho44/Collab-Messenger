@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../services/auth.service";
 import { useContext } from "react";
 import { AppContext } from "../../store/app.context";
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 
 const Logout = () => {
   const { setAppState } = useContext(AppContext);
@@ -23,14 +23,25 @@ const Logout = () => {
   };
 
   return (
+    <Box>
+    <Button
+      onClick={() => navigate('/profile')}
+      variant="contained"
+      color= 'primary'
+      sx={{ borderRadius: 2, margin: 1, px: 3, fontWeight: "bold", textTransform: "none" }}
+      >
+        Profile
+      </Button> 
+      
     <Button
       onClick={logout}
       variant="contained"
-      color="blue.600"
+      color="secondary"
       sx={{ borderRadius: 2, px: 3, fontWeight: "bold", textTransform: "none" }}
     >
       Logout
-    </Button>
+  </Button>
+  </Box>
   );
 };
 

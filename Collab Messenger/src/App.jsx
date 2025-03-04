@@ -41,10 +41,9 @@ const App = () => {
 
     getUserData(user.uid)
       .then((data) => {
-        const userData = data[Object.keys(data)[0]];
         setAppState((prevState) => ({
           ...prevState,
-          userData,
+          userData: data,
         }));
       })
       .catch((error) => {
@@ -65,7 +64,7 @@ const App = () => {
           </Route>
           <Route element={<Private />}>
             {/* if user is logged */}
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<Profile userId={user?.uid} />} />
             <Route path="/" element={<Home />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
 
