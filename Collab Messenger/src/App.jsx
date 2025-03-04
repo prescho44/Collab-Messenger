@@ -23,12 +23,14 @@ const App = () => {
 
   const [user, loading, error] = useAuthState(auth);
 
-  if (appState.user !== user) {
-    setAppState({
-      ...appState,
-      user,
-    });
-  }
+  useEffect(() => {
+    if (appState.user !== user) {
+      setAppState((prevState) => ({
+        ...prevState,
+        user,
+      }));
+    }
+  }, [user, appState.user]);
 
   useEffect(() => {
     if (!user) return;
@@ -36,24 +38,23 @@ const App = () => {
     loading && console.log('loading user');
     error && console.log('error loading user');
 
-    getUserData(appState.user.uid)
+    getUserData(user.uid)
       .then((data) => {
         const userData = data[Object.keys(data)[0]];
-        setAppState({
-          ...appState,
+        setAppState((prevState) => ({
+          ...prevState,
           userData,
-        });
+        }));
       })
       .catch((error) => {
         console.log(error);
       });
-  }, [user]);
+  }, [user, loading, error]);
 
   return (
     <BrowserRouter>
-      <Header />
-
       <AppContext.Provider value={{ ...appState, setAppState }}>
+        <Header />
         <Routes>
           <Route element={<Public />}>
             {/* user is not logged in */}

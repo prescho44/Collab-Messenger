@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../services/auth.service";
 import { useContext } from "react";
 import { AppContext } from "../../store/app.context";
+import { Button } from "@chakra-ui/react";
 
 const Logout = () => {
   const { setAppState } = useContext(AppContext);
@@ -20,12 +21,12 @@ const Logout = () => {
         console.error(error.message);
       });
   };
+
   return (
-    <>
-      <div onClick={logout} className="logoutButton"> 
-        Logout
-      </div>
-    </>
+    <Button variant="solid" colorScheme="red" onClick={logout}>
+      Logout
+    </Button>
   );
 };
+
 export default Logout;

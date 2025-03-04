@@ -5,7 +5,6 @@ const Home = () => {
   return (
     <div>
  
-      <Logout />
       <h1>Home page!</h1>
     </div>
   );

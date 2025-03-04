@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { NavLink } from "react-router-dom";
-import { AppBar, Toolbar, Button, Typography, Container } from "@mui/material";
+import { Box, Flex, Button, Text, Container, HStack } from "@chakra-ui/react";
 import { AppContext } from "../../store/app.context";
 import Logout from "../../features/auth/Logout";
 
@@ -8,45 +8,34 @@ export default function Header() {
     const { user } = useContext(AppContext);
 
     return (
-        <AppBar position="sticky" sx={{ backgroundColor: "#4caf50" }}>
-            <Container maxWidth="xl">
-                <Toolbar sx={{ justifyContent: "space-between" }}>
-                    <Typography variant="h6" component="div">
+        <Box as="header" bg="green.500" py={4} position="sticky" top={0} zIndex={10}>
+            <Container maxW="container.xl">
+                <Flex justify="space-between" align="center">
+                    <Text fontSize="xl" fontWeight="bold" color="white">
                         Talking
-                    </Typography>
-                    <nav>
-                        <ul style={{ display: "flex", listStyle: "none", gap: "20px" }}>
-                            <li>
-                                <NavLink to="/" end>
-                                    <Button color="inherit">Home</Button>
+                    </Text>
+                    <HStack as="nav" spacing={5}>
+                        <NavLink to="/">
+                            <Button variant="link" color="white">Home</Button>
+                        </NavLink>
+                        {!user && (
+                            <>
+                                <NavLink to="/login">
+                                    <Button variant="link" color="white">Login</Button>
                                 </NavLink>
-                            </li>
-                            {!user ? (
-                                <>
-                                    <li>
-                                        <NavLink to="/login">
-                                            <Button color="inherit">Login</Button>
-                                        </NavLink>
-                                    </li>
-                                    <li>
-                                        <NavLink to="/register">
-                                            <Button color="inherit">Register</Button>
-                                        </NavLink>
-                                    </li>
-                                </>
-                            ) : null}
-                        </ul>
-                    </nav>
+                                <NavLink to="/register">
+                                    <Button variant="link" color="white">Register</Button>
+                                </NavLink>
+                            </>
+                        )}
+                    </HStack>
                     {user && (
-                        <>
-                            <Typography variant="body1" sx={{ color: "white" }}>
-                                {user.email}
-                            </Typography>
+                        <HStack spacing={4}>
                             <Logout />
-                        </>
+                        </HStack>
                     )}
-                </Toolbar>
+                </Flex>
             </Container>
-        </AppBar>
+        </Box>
     );
 }
