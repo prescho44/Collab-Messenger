@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../services/auth.service";
 import { useContext } from "react";
 import { AppContext } from "../../store/app.context";
-import { Button } from "@chakra-ui/react";
+import { Button } from "@mui/material";
 
 const Logout = () => {
   const { setAppState } = useContext(AppContext);
@@ -15,7 +15,7 @@ const Logout = () => {
           user: null,
           userData: null,
         });
-        navigate('/login');
+        navigate('/');
       })
       .catch((error) => {
         console.error(error.message);
@@ -23,7 +23,12 @@ const Logout = () => {
   };
 
   return (
-    <Button variant="outline" onClick={logout}>
+    <Button
+      onClick={logout}
+      variant="contained"
+      color="blue.600"
+      sx={{ borderRadius: 2, px: 3, fontWeight: "bold", textTransform: "none" }}
+    >
       Logout
     </Button>
   );

@@ -54,7 +54,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <AppContext.Provider value={{ ...appState, setAppState }}>
-        <Header />
+        {appState.user && <Header />}
         <Routes>
           <Route element={<Public />}>
             {/* user is not logged in */}

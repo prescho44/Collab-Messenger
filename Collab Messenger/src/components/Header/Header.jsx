@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { NavLink } from "react-router-dom";
-import { Box, Flex, Button, Text, Container, HStack } from "@chakra-ui/react";
+import { AppBar, Toolbar, Button, Typography, Box } from "@mui/material";
 import { AppContext } from "../../store/app.context";
 import Logout from "../../features/auth/Logout";
 
@@ -8,40 +8,31 @@ export default function Header() {
   const { user } = useContext(AppContext);
 
   return (
-    <Box
-      as="header"
-      bg="gray.600"
-      py={5}
-      position="sticky"
-      top={0}
-      zIndex={10}
-    >
-      <Container maxW="container.xl">
-        <Flex justify="space-between" align="center">
-          <NavLink to="/">Discord Clone</NavLink>
-          <HStack as="nav" spacing={5}>
-            {!user && (
-              <>
-                <NavLink to="/login">
-                  <Button variant="outline" color="white">
-                    Login
-                  </Button>
-                </NavLink>
-                <NavLink to="/register">
-                  <Button variant="outline" color="white">
-                    Register
-                  </Button>
-                </NavLink>
-              </>
-            )}
-          </HStack>
-          {user && (
-            <HStack spacing={4}>
-              <Logout />
-            </HStack>
+    <AppBar position="sticky" color="primary" elevation={4}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography 
+          variant="h6" 
+          component={NavLink} 
+          to="/" 
+          sx={{ textDecoration: "none", color: "inherit", fontWeight: "bold" }}
+        >
+          Discord Clone
+        </Typography>
+        <Box>
+          {!user ? (
+            <>
+              <Button component={NavLink} to="/login" variant="outlined" color="inherit" sx={{ mx: 1 }}>
+                Login
+              </Button>
+              <Button component={NavLink} to="/register" variant="outlined" color="inherit">
+                Register
+              </Button>
+            </>
+          ) : (
+            <Logout />
           )}
-        </Flex>
-      </Container>
-    </Box>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }

@@ -1,62 +1,103 @@
 import { db } from "../configs/firebaseConfig";
-import { ref, onValue } from 'firebase/database';
-import { useEffect, useState } from 'react';
-import { Box, Text, List, ListItem, VStack, Card, CardBody, Divider, Badge } from "@chakra-ui/react";
+import { ref, onValue } from "firebase/database";
+import { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CircularProgress,
+  Avatar,
+  Divider,
+  Stack,
+  Chip,
+} from "@mui/material";
+import Grid2 from "@mui/material/Grid2"; // Correct import for Grid2
 
-export default function Chats() {   
-    const [teams, setTeams] = useState([]);
+export default function Chats() {
+  const [teams, setTeams] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const postsRef = ref(db, 'teams');
-        onValue(postsRef, (snapshot) => {
-            const postsData = snapshot.val();
-            if (postsData) {
-                const teamsList = Object.entries(postsData).map(([id, team]) => ({
-                    id,
-                    name: team.name || "Unnamed Team",
-                    owner: team.owner || "Unknown Owner",
-                    channels: team.channels ? Object.keys(team.channels) : [],
-                    members: team.members ? Object.keys(team.members) : [],
-                }));
-                setTeams(teamsList);
-            } else {
-                setTeams([]);
-            }
-        });
-    }, []);
+  useEffect(() => {
+    const postsRef = ref(db, "teams");
+    onValue(postsRef, (snapshot) => {
+      const postsData = snapshot.val();
+      if (postsData) {
+        const teamsList = Object.entries(postsData).map(([id, team]) => ({
+          id,
+          name: team.name || "Unnamed Team",
+          owner: team.owner || "Unknown Owner",
+          channels: team.channels ? Object.keys(team.channels) : [],
+          members: team.members ? Object.keys(team.members) : [],
+        }));
+        setTeams(teamsList);
+      } else {
+        setTeams([]); // Handle case with no data
+      }
+      setLoading(false);
+    });
+  }, []);
 
-    return (
-        <Box p={5}>
-            <Text fontSize="2xl" fontWeight="bold" mb={5} textAlign="center">Your Chats!</Text>
-            
-            {teams.length === 0 ? (
-                <Text color="gray.500" textAlign="center">No teams available</Text>
-            ) : (
-                <List spacing={4}>
-                    {teams.map((team) => (
-                        <ListItem key={team.id}>
-                            <Card variant="outline" borderColor="gray.300" borderRadius="lg" p={4}>
-                                <CardBody>
-                                    <Text fontSize="xl" fontWeight="semibold">{team.name}</Text>
-                                    <Text color="gray.600" mb={2}>Owner: {team.owner}</Text>
-                                    <VStack align="flex-start" spacing={2} divider={<Divider />}>
-                                        <Text fontSize="md" fontWeight="bold" color="blue.500">Channels:</Text>
-                                        {team.channels.length > 0 ? (
-                                            team.channels.map((channelId, index) => (
-                                                <Badge key={index} colorScheme="green" borderRadius="md">
-                                                    {channelId}
-                                                </Badge>
-                                            ))
-                                        ) : (
-                                            <Text color="gray.400">No channels</Text>
-                                        )}
-                                    </VStack>
-                                </CardBody>
-                            </Card>
-                        </ListItem>
-                    ))}
-                </List>
-            )}
-        </Box>
-    );
+  return (
+    <Box p={5}>
+      <Typography variant="h4" fontWeight="bold" textAlign="center" gutterBottom>
+        Teams & Chats
+      </Typography>
+
+      {loading ? (
+        <Stack alignItems="center" justifyContent="center" spacing={2} mt={5}>
+          <CircularProgress color="primary" />
+          <Typography color="primary">Loading teams...</Typography>
+        </Stack>
+      ) : teams.length === 0 ? (
+        <Typography color="textSecondary" textAlign="center">
+          No teams available
+        </Typography>
+      ) : (
+        <Grid2 container spacing={3} justifyContent="center">
+          {teams.map((team) => (
+            <Grid2 item xs={12} md={6} lg={4} key={team.id}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                    <Avatar sx={{ bgcolor: "teal" }}>{team.name[0]}</Avatar>
+                    <Box>
+                      <Typography variant="h6" color="teal">
+                        {team.name}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Owner: {team.owner}
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  <Divider sx={{ my: 1 }} />
+
+                  <Typography variant="subtitle1" color="primary">
+                    Channels:
+                  </Typography>
+                  <Stack direction="row" flexWrap="wrap" spacing={1} mt={1}>
+                    {team.channels.length > 0 ? (
+                      team.channels.map((channelId, index) => (
+                        <Chip
+                          key={index}
+                          label={channelId.length > 15 ? `${channelId.substring(0, 15)}...` : channelId}
+                          color="grey"
+                          size="big"
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">
+                        No channels
+                      </Typography>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid2>
+          ))}
+        </Grid2>
+      )}
+    </Box>
+  );
 }

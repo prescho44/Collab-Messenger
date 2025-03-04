@@ -10,9 +10,9 @@
     "preview": "vite preview"
   },
   "resolutions": {
-  "@emotion/react": "^11.11.0",
-  "@emotion/styled": "^11.11.0"
-},
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0"
+  },
   "dependencies": {
     "@chakra-ui/form-control": "^2.2.0",
     "@chakra-ui/icons": "^2.2.4",
@@ -21,6 +21,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@headlessui/react": "^2.2.0",
+    "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
     "@tailwindcss/vite": "^4.0.9",
     "firebase": "^11.3.1",
