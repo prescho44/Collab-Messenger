@@ -7,12 +7,13 @@ import Register from './features/auth/Register';
 import { auth } from './configs/firebaseConfig';
 import './App.css';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { getUserData } from './services/users.service';
+import { getUserData } from './services/user.service';
 import Private from './components/Private';
 import Public from './components/Public';
 import NotFound from './components/NotFound';
 import Home from './pages/Home';
 import Profile from './features/auth/Profile';
+import Header from './components/Header/Header';
 
 const App = () => {
   const [appState, setAppState] = useState({
@@ -56,6 +57,7 @@ const App = () => {
         <Routes>
           <Route element={<Public />}>
             {/* user is not logged in */}
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>

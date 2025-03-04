@@ -2,11 +2,11 @@ import { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { AppBar, Toolbar, Button, Typography, Container } from "@mui/material";
 import { AppContext } from "../../store/app.context";
-import { Link } from "@mui/material";
+import Logout from "../../features/auth/Logout";
 
 export default function Header() {
     const { user } = useContext(AppContext);
-    
+
     return (
         <AppBar position="sticky" sx={{ backgroundColor: "#4caf50" }}>
             <Container maxWidth="xl">
@@ -21,7 +21,7 @@ export default function Header() {
                                     <Button color="inherit">Home</Button>
                                 </NavLink>
                             </li>
-                            {!user && (
+                            {!user ? (
                                 <>
                                     <li>
                                         <NavLink to="/login">
@@ -34,13 +34,16 @@ export default function Header() {
                                         </NavLink>
                                     </li>
                                 </>
-                            )}
+                            ) : null}
                         </ul>
                     </nav>
                     {user && (
-                        <Typography variant="body1" sx={{ color: "white" }}>
-                            {user.email}
-                        </Typography>
+                        <>
+                            <Typography variant="body1" sx={{ color: "white" }}>
+                                {user.email}
+                            </Typography>
+                            <Logout />
+                        </>
                     )}
                 </Toolbar>
             </Container>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../../services/auth.service';
 import { createUserHandle, getUserByHandle } from '../../services/user.service';
 import { AppContext } from '../../store/app.context';
-import { storage } from '../../firebaseConfig';
+import { storage } from '../../configs/firebaseConfig';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import defaultProfileImage from '../../assets/default-avatar.jpg';
 
