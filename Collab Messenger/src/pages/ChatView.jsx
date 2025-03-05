@@ -137,7 +137,7 @@ const ChatView = () => {
                 <ListItem
                   button
                   key={channelId}
-                  onClick={() => navigate(`/teams/${team.id}/${channelId}`)}
+                  onClick={() => navigate(`/teams/${team.id}/channels/${channelId}`)}
                 >
                   <ListItemText primary={channelId} />
                 </ListItem>
