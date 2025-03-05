@@ -39,7 +39,7 @@ export default function Chats() {
             teamName: team.teamName || "Unnamed Team",
             owner: team.owner || "Unknown Owner",
             channels: team.channels ? Object.keys(team.channels) : [],
-            members: team.members ? Object.keys(team.members) : [],
+            members: team.members ? Object.values(team.members) : [],
           }))
           // Filter teams where the current user is a member or owner
           .filter((team) => team.members.includes(userData?.handle) || team.owner === userData?.handle);
