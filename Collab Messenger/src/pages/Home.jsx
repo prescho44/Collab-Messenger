@@ -13,15 +13,32 @@ const Home = () => {
   };
 
   return (
-    <Container component="main"
-    maxWidth="xs"
-    sx={{
-      width: "100%",
-      marginLeft: "0",
-      marginRight: "0",
-      paddingLeft: "0",
-      paddingRight: "0",
-    }}>
+    <Container
+      component="main"
+      maxWidth="xs"
+      sx={{
+        width: "100%",
+        marginLeft: "auto",
+        marginRight: "auto",
+        paddingLeft: "16px",
+        paddingRight: "16px",
+        boxSizing: "border-box",
+        ...(user
+          ? {
+              // Styles when user is logged in
+              width: "100%",
+              marginLeft: "0",
+              marginRight: "0",
+              paddingLeft: "0",
+              paddingRight: "0",
+              backgroundColor: "gray.100",
+            }
+          : {
+              // Styles when user is not logged in
+              backgroundColor: "gray.100",
+            }),
+      }}
+    >
       <Box
         sx={{
           display: "flex",
@@ -35,9 +52,8 @@ const Home = () => {
         {user ? (
           // If user is logged in, show Chats component
           <Chats />
-          
         ) : (
-          <div style={{ width: "100%" }}>
+          <Box sx={{ width: "100%" }}>
             <Typography variant="h5" align="center" gutterBottom>
               Welcome to Collab Messenger
             </Typography>
@@ -67,10 +83,7 @@ const Home = () => {
             >
               Register
             </Button>
-
-            {/* Button to navigate to MakeNewChat */}
-            
-          </div>
+          </Box>
         )}
       </Box>
     </Container>

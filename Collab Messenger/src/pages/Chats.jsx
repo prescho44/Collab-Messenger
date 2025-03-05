@@ -13,13 +13,13 @@ import {
   Divider,
   Stack,
   Chip,
+  Container
 } from "@mui/material";
 import Grid2 from "@mui/material/Grid2"; // Correct import for Grid2
 
 export default function Chats() {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +43,15 @@ export default function Chats() {
   }, []);
 
   return (
+    <Container component="main"
+    maxWidth="xs"
+    sx={{
+      width: "100%",
+      marginLeft: "0",
+      marginRight: "0",
+      paddingLeft: "0",
+      paddingRight: "0",
+    }}>
     <Box
       p={1}
       m={0}
@@ -82,7 +91,11 @@ export default function Chats() {
         <Grid2 container spacing={3} justifyContent="flex-start" wrap="wrap">
           {teams.map((team) => (
             <Grid2 item xs={12} sm={6} md={4} lg={3} key={team.id}>
-              <Card variant="outlined">
+              <Card
+                variant="outlined"
+                onClick={() => navigate(`/team/${team.id}`)} // Navigate to the team details page
+                sx={{ cursor: "pointer" }} // Add pointer cursor to indicate clickable
+              >
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2} mb={2}>
                     <Avatar sx={{ bgcolor: "teal" }}>{team.teamName[0]}</Avatar>
@@ -128,5 +141,6 @@ export default function Chats() {
         </Grid2>
       )}
     </Box>
+    </Container>
   );
 }
