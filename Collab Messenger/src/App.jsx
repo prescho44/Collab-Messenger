@@ -15,6 +15,7 @@ import Home from './pages/Home';
 import Profile from './features/auth/Profile';
 import Header from './components/Header/Header';
 import MakeNewChat from './pages/MakeNewChat';
+import ChatView from './pages/ChatView';
 
 const App = () => {
   const [appState, setAppState] = useState({
@@ -61,13 +62,14 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
           </Route>
           <Route element={<Private />}>
             {/* if user is logged */}
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
             <Route path="/" element={<Home />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
-
+            
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
