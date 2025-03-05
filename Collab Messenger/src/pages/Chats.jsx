@@ -93,7 +93,6 @@ export default function Chats() {
             <Grid2 item xs={12} sm={6} md={4} lg={3} key={team.id}>
               <Card
                 variant="outlined"
-                onClick={() => navigate(`/team/${team.id}`)} // Navigate to the team details page
                 sx={{ cursor: "pointer" }} // Add pointer cursor to indicate clickable
               >
                 <CardContent>
@@ -115,25 +114,23 @@ export default function Chats() {
                     Channels:
                   </Typography>
                   <Stack direction="row" flexWrap="wrap" spacing={1} mt={1}>
-                    {team.channels.length > 0 ? (
-                      team.channels.map((channelId, index) => (
-                        <Chip
-                          key={index}
-                          label={
-                            channelId.length > 15
-                              ? `${channelId.substring(0, 15)}...`
-                              : channelId
-                          }
-                          color="default"
-                          size="small"
-                        />
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        No channels
-                      </Typography>
-                    )}
-                  </Stack>
+                      {team.channels.length > 0 ? (
+                        team.channels.map((channelId, index) => (
+                          <Chip
+                            key={index}
+                            label={channelId.length > 15 ? `${channelId.substring(0, 15)}...` : channelId}
+                            color="default"
+                            size="small"
+                            onClick={() => navigate(`/teams/${team.id}/channels/${channelId}`)}
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">
+                          No channels
+                        </Typography>
+                      )}
+                    </Stack>
+        
                 </CardContent>
               </Card>
             </Grid2>
