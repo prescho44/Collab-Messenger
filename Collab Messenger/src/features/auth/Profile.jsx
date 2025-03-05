@@ -13,10 +13,8 @@ const Profile = ({ userId }) => {
       return;
     }
 
-    console.log('Fetching user data for userId:', userId); // Debug log
     getUserData(userId)
       .then((data) => {
-        console.log('Fetched user data:', data); // Debug log
         setUserData(data);
       })
       .catch((error) => {

@@ -48,13 +48,14 @@ export default function Chats() {
       m={0}
       display="flex"
       flexDirection="column"
-      alignItems="flex-start" // Align to the left
-      width="100%" // Ensure it takes full width
+      alignItems="flex-start"
+      width="100%"
+      overflow="auto" // Handle overflow by adding scrollbar
     >
       <Typography
         variant="h4"
         fontWeight="bold"
-        textAlign="left" // Align text to the left
+        textAlign="left"
         gutterBottom
       >
         Teams & Chats
@@ -62,10 +63,10 @@ export default function Chats() {
       <Button
         variant="outlined"
         color="primary"
-        sx={{ width: "100%", maxWidth: 20, padding: "8px 16px", mt: 2, mb: 2 }}
-        onClick={() => navigate("/new-chat")} // This will navigate to MakeNewChat page
+        sx={{ width: "100%", maxWidth: 200, padding: "8px 16px", mt: 2, mb: 2 }} // Set a maxWidth for button
+        onClick={() => navigate("/new-chat")}
       >
-        +
+        Make a New Chat
       </Button>
 
       {loading ? (
@@ -78,9 +79,9 @@ export default function Chats() {
           No teams available
         </Typography>
       ) : (
-        <Grid2 container spacing={3} justifyContent="flex-start"> {/* Ensure the grid items are aligned left */}
-          {teams.map((team) => ( // Limit to 3 teams
-            <Grid2 item xs={12} md={6} lg={4} key={team.id}>
+        <Grid2 container spacing={3} justifyContent="flex-start" wrap="wrap">
+          {teams.map((team) => (
+            <Grid2 item xs={12} sm={6} md={4} lg={3} key={team.id}>
               <Card variant="outlined">
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2} mb={2}>

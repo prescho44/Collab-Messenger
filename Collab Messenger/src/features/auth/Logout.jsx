@@ -23,15 +23,7 @@ const Logout = () => {
   };
 
   return (
-    <Box>
-    <Button
-      onClick={() => navigate('/profile')}
-      variant="contained"
-      color= 'primary'
-      sx={{ borderRadius: 2, margin: 1, px: 3, fontWeight: "bold", textTransform: "none" }}
-      >
-        Profile
-      </Button> 
+    <Box >
       
     <Button
       onClick={logout}

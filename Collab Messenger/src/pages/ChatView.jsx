@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { db } from "../configs/firebaseConfig";
 import { ref, onValue, push, set } from 'firebase/database';
 import { AppContext } from '../store/app.context';
@@ -12,7 +12,11 @@ import {
   Avatar,
   Stack,
   Divider,
-  CircularProgress
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  Drawer
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 
@@ -22,7 +26,9 @@ const ChatView = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [teams, setTeams] = useState([]);
   const messagesEndRef = useRef(null);
+  const navigate = useNavigate();
 
   // Auto scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -54,6 +60,23 @@ const ChatView = () => {
 
     return () => unsubscribe();
   }, [teamId, channelId]);
+
+  useEffect(() => {
+    const postsRef = ref(db, "teams");
+    onValue(postsRef, (snapshot) => {
+      const postsData = snapshot.val();
+      if (postsData) {
+        const teamsList = Object.entries(postsData).map(([id, team]) => ({
+          id,
+          teamName: team.teamName || "Unnamed Team",
+          channels: team.channels ? Object.keys(team.channels) : [],
+        }));
+        setTeams(teamsList);
+      } else {
+        setTeams([]);
+      }
+    });
+  }, []);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -94,79 +117,99 @@ const ChatView = () => {
   }
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Messages Container */}
-      <Box sx={{ 
-        flex: 1, 
-        overflow: 'auto', 
-        p: 2,
-        bgcolor: 'background.default'
-      }}>
-        <Stack spacing={2}>
-          {messages.map((message) => (
-            <Paper
-              key={message.id}
-              sx={{
-                p: 2,
-                maxWidth: '70%',
-                alignSelf: message.sender === user.uid ? 'flex-end' : 'flex-start',
-                bgcolor: message.sender === user.uid ? 'primary.dark' : 'background.paper'
-              }}
-            >
-              <Stack direction="row" spacing={2} alignItems="start">
-                <Avatar 
-                  src={message.senderPhoto} 
-                  sx={{ width: 40, height: 40 }}
-                />
-                <Box>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {message.senderName || 'Unknown User'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {formatTime(message.timestamp)}
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body1">
-                    {message.content}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
+    <Box sx={{ height: '100vh', display: 'flex' }}>
+      {/* Sidebar */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          [`& .MuiDrawer-paper`]: { width: 240, boxSizing: 'border-box' },
+        }}
+      >
+        <List>
+          {teams.map((team) => (
+            <div key={team.id}>
+              <ListItem>
+                <ListItemText primary={team.teamName} />
+              </ListItem>
+              {team.channels.map((channelId) => (
+                <ListItem
+                  button
+                  key={channelId}
+                  onClick={() => navigate(`/teams/${team.id}/${channelId}`)}
+                >
+                  <ListItemText primary={channelId} />
+                </ListItem>
+              ))}
+            </div>
           ))}
-          <div ref={messagesEndRef} />
-        </Stack>
-      </Box>
+        </List>
+      </Drawer>
 
-      <Divider />
-
-      {/* Message Input */}
-      <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-        <form onSubmit={handleSendMessage}>
-          <Stack direction="row" spacing={2}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'primary.main' },
-                  '&:hover fieldset': { borderColor: 'primary.light' },
-                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
-                }
-              }}
-            />
-            <IconButton 
-              type="submit" 
-              color="primary" 
-              disabled={!newMessage.trim()}
-            >
-              <SendIcon />
-            </IconButton>
+      {/* Main Chat Area */}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Messages Container */}
+        <Box sx={{ flex: 1, overflow: 'auto', p: 2, bgcolor: 'background.default' }}>
+          <Stack spacing={2}>
+            {messages.map((message) => (
+              <Paper
+                key={message.id}
+                sx={{
+                  p: 2,
+                  maxWidth: '70%',
+                  alignSelf: message.sender === user.uid ? 'flex-end' : 'flex-start',
+                  bgcolor: message.sender === user.uid ? 'primary.dark' : 'background.paper'
+                }}
+              >
+                <Stack direction="row" spacing={2} alignItems="start">
+                  <Avatar src={message.senderPhoto} sx={{ width: 40, height: 40 }} />
+                  <Box>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography variant="subtitle2" color="text.secondary">
+                        {message.senderName || 'Unknown User'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {formatTime(message.timestamp)}
+                      </Typography>
+                    </Stack>
+                    <Typography variant="body1">
+                      {message.content}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            ))}
+            <div ref={messagesEndRef} />
           </Stack>
-        </form>
+        </Box>
+
+        <Divider />
+
+        {/* Message Input */}
+        <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+          <form onSubmit={handleSendMessage}>
+            <Stack direction="row" spacing={2}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Type a message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': { borderColor: 'primary.main' },
+                    '&:hover fieldset': { borderColor: 'primary.light' },
+                    '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+                  }
+                }}
+              />
+              <IconButton type="submit" color="primary" disabled={!newMessage.trim()}>
+                <SendIcon />
+              </IconButton>
+            </Stack>
+          </form>
+        </Box>
       </Box>
     </Box>
   );
