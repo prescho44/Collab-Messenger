@@ -1,13 +1,31 @@
 import { useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { AppBar, Toolbar, Button, Typography, Box, IconButton } from "@mui/material";
+import { AppBar, Toolbar, Button, Typography, Box, IconButton, Icon } from "@mui/material";
 import { AppContext } from "../../store/app.context";
-import Logout from "../../features/auth/Logout";
+import { logoutUser } from "../../services/auth.service";
+
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 export default function Header() {
   const { user } = useContext(AppContext);
   const navigate = useNavigate();
+  const { setAppState } = useContext(AppContext);
+
+
+  const logout = () => {
+      logoutUser()
+        .then(() => {
+          setAppState({
+            user: null,
+            userData: null,
+          });
+          navigate('/');
+        })
+        .catch((error) => {
+          console.error(error.message);
+        });
+    };
 
   return (
     <AppBar position="sticky" color="primary" elevation={4}>
@@ -48,9 +66,20 @@ export default function Header() {
               >
                 <AccountBoxIcon sx={{ fontSize: 30 }} />
               </IconButton>
-
-              {/* Logout Button */}
-              <Logout />
+                <IconButton
+                onClick={logout}
+                color="inherit"
+                sx={{ 
+                  bgcolor: "grey.900", 
+                  color: "primary.main", 
+                  borderRadius: 2, 
+                  padding: 1,
+                  "&:hover": { bgcolor: "primary.light" },
+                  mr: 2 // Space between buttons
+                }}>
+                
+              <LogoutIcon sx={{ fontSize: 30 }} />
+             </IconButton>
             </Box>
           )}
         </Box>

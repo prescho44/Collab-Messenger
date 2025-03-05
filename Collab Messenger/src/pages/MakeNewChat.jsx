@@ -1,7 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../store/app.context';
 import { db } from '../configs/firebaseConfig';
-import { ref, set, push } from 'firebase/database';
+import { ref, set, push, get } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -10,6 +10,8 @@ import {
   TextField,
   Stack,
   Alert,
+  Chip,
+  Autocomplete,
 } from '@mui/material';
 
 const MakeNewChat = () => {
@@ -19,8 +21,25 @@ const MakeNewChat = () => {
   const [channelName, setChannelName] = useState('');
   const [members, setMembers] = useState('');
   const [error, setError] = useState('');
+  const [users, setUsers] = useState([]);
+  const [memberError, setMemberError] = useState('');
 
   const navigate = useNavigate(); // Use navigate hook
+
+  useEffect(() => {
+    // Fetch users from Firebase
+    const fetchUsers = async () => {
+      const usersRef = ref(db, 'users');
+      const snapshot = await get(usersRef);
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const usersList = Object.values(usersData).map(user => user.handle);
+        setUsers(usersList);
+      }
+    };
+console.log(users)
+    fetchUsers();
+  }, []);
 
   const uploadTeam = async () => {
     try {
@@ -28,10 +47,11 @@ const MakeNewChat = () => {
       const teamId = newTeamRef.key;
 
       const channelsArray = channelName.split(',').map(channel => channel.trim());
-      const channelsObject = channelsArray.reduce((acc, channel) => {
-        acc[channel] = true; // Use the channel name as the key
+      const channelsObject = channelsArray.reduce((acc, channel, index) => {
+        acc[`channel_${index}`] = channel; // Use a unique identifier for each channel
         return acc;
       }, {});
+      console.log(channelsObject);
 
       const team = {
         teamName,
@@ -43,8 +63,9 @@ const MakeNewChat = () => {
       };
 
       await set(ref(db, `teams/${teamId}`), team);
+      console.log(channelsObject);
 
-      for (const channel of channelsArray) {
+      for (const [channelId, channel] of Object.entries(channelsObject)) {
         const channelData = {
           teamId,
           title: channel,
@@ -58,7 +79,7 @@ const MakeNewChat = () => {
             },
           },
         };
-        await set(ref(db, `channels/${teamId}/${channel}`), channelData);
+        await set(ref(db, `channels/${teamId}/${channelId}`), channelData);
       }
 
       setTeamName('');
@@ -81,6 +102,15 @@ const MakeNewChat = () => {
       return;
     }
 
+    const memberList = members.split(',').map(member => member.trim());
+    const invalidMembers = memberList.filter(member => !users.includes(member));
+console.log(memberList)
+    if (invalidMembers.length > 0) {
+      setMemberError(`Invalid members: ${invalidMembers.join(', ')}`);
+      return;
+    }
+
+    setMemberError('');
     console.log('Team created:', { teamName, channelName, members });
     uploadTeam();
   };
@@ -188,32 +218,53 @@ const MakeNewChat = () => {
 
           <Box>
             <Typography mb={2} color="white">
-              Members (comma separated)
+              Members 
             </Typography>
-            <TextField
-              id="members"
-              value={members}
-              onChange={(e) => setMembers(e.target.value)}
-              placeholder="Enter members"
-              fullWidth
-              required
-              variant="outlined"
-              color="primary"
-              sx={{
-                backgroundColor: 'gray.600',
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'teal',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'teal',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'teal',
-                  },
-                },
+            <Autocomplete
+              multiple
+              freeSolo
+              options={users}
+              value={members.split(',').map(member => member.trim())}
+              onChange={(event, newValue) => {
+                setMembers(newValue.join(', '));
               }}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    variant="outlined"
+                    label={option}
+                    {...getTagProps({ index })}
+                  />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  placeholder="Enter members"
+                  fullWidth
+                  sx={{
+                    backgroundColor: 'gray.600',
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'teal',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'teal',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'teal',
+                      },
+                    },
+                  }}
+                />
+              )}
             />
+            {memberError && (
+              <Typography variant="body2" color="error" mt={1}>
+                {memberError}
+              </Typography>
+            )}
           </Box>
 
           <Button
