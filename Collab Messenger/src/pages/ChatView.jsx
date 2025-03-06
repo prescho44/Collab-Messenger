@@ -13,16 +13,14 @@ import {
   Stack,
   Divider,
   CircularProgress,
-  Drawer,
   Menu,
   MenuItem,
   Popover,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import SaveIcon from '@mui/icons-material/Save';
 import Chats from './Chats';
-import EmojiPicker from 'emoji-picker-react';
+import Picker from 'emoji-picker-react';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
@@ -220,9 +218,10 @@ const ChatView = () => {
           flexDirection: 'column',
           width: '26.75%',
           ml: 3,
-        }}>     
+        }}
+      >
         <Chats />
-      </Box>   
+      </Box>
 
       {/* Main Chat Area */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -344,13 +343,15 @@ const ChatView = () => {
             horizontal: 'center',
           }}
         >
-          <EmojiPicker 
+          <Picker
+            reactionsDefaultOpen={true}
+            theme='dark'
+            emojiStyle='native'
+            skinTonePickerLocation='none'
+            onReactionClick={handleEmojiSelect}
             onEmojiClick={handleEmojiSelect}
-            autoFocusSearch={false}
-            // Optional customization props:
-            // height={350}
-            // width={300}
-            // emojiStyle="native"
+            height={400}
+            width={350}
           />
         </Popover>
 
