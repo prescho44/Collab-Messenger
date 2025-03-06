@@ -1,8 +1,8 @@
-import { db } from "../configs/firebaseConfig";
-import { ref, onValue } from "firebase/database";
-import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { AppContext } from "../store/app.context"; // Assuming you have this context to manage the user data
+import { db } from '../configs/firebaseConfig';
+import { ref, onValue } from 'firebase/database';
+import { useEffect, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../store/app.context'; // Assuming you have this context to manage the user data
 import {
   Box,
   Button,
@@ -18,9 +18,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-} from "@mui/material";
+} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Grid2 from "@mui/material/Grid2"; // Correct import for Grid2
+import Grid from '@mui/material/Grid2'; // Correct import for Grid2
 
 export default function Chats() {
   const { userData } = useContext(AppContext); // Access the current user data from context
@@ -29,20 +29,24 @@ export default function Chats() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const postsRef = ref(db, "teams");
+    const postsRef = ref(db, 'teams');
     onValue(postsRef, (snapshot) => {
       const postsData = snapshot.val();
       if (postsData) {
         const teamsList = Object.entries(postsData)
           .map(([id, team]) => ({
             id,
-            teamName: team.teamName || "Unnamed Team",
-            owner: team.owner || "Unknown Owner",
+            teamName: team.teamName || 'Unnamed Team',
+            owner: team.owner || 'Unknown Owner',
             channels: team.channels ? Object.keys(team.channels) : [],
-            members: team.members ? Object.keys(team.members) : [],
+            members: team.members ? Object.values(team.members) : [],
           }))
           // Filter teams where the current user is a member or owner
-          .filter((team) => team.members.includes(userData?.handle) || team.owner === userData?.handle);
+          .filter(
+            (team) =>
+              team.members.includes(userData?.handle) ||
+              team.owner === userData?.handle
+          );
 
         setTeams(teamsList);
       } else {
@@ -56,11 +60,11 @@ export default function Chats() {
     <Container
       component="main"
       sx={{
-        width: "100%",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "gray.100",
+        width: '100%',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'gray.100',
         padding: 0,
         margin: 0,
       }}
@@ -75,9 +79,9 @@ export default function Chats() {
         sx={{
           gap: 1,
           minWidth: 300,
-          borderRight: "1px solid #ddd",
-          overflowY: "auto",
-          backgroundColor: "gray.100",
+          borderRight: '1px solid #ddd',
+          overflowY: 'auto',
+          backgroundColor: 'gray.100',
         }} // Handle overflow by adding scrollbar
       >
         <Typography
@@ -85,15 +89,21 @@ export default function Chats() {
           fontWeight="bold"
           textAlign="left"
           gutterBottom
-          onClick={() => navigate("/")}
+          onClick={() => navigate('/')}
         >
           Teams & Chats
         </Typography>
         <Button
           variant="outlined"
           color="primary"
-          sx={{ width: "100%", maxWidth: 200, padding: "8px 16px", mt: 2, mb: 2 }} // Set a maxWidth for button
-          onClick={() => navigate("/new-chat")}
+          sx={{
+            width: '100%',
+            maxWidth: 200,
+            padding: '8px 16px',
+            mt: 2,
+            mb: 2,
+          }} // Set a maxWidth for button
+          onClick={() => navigate('/new-chat')}
         >
           Make a New Chat
         </Button>
@@ -108,16 +118,23 @@ export default function Chats() {
             No teams available
           </Typography>
         ) : (
-          <Grid2 container spacing={3} justifyContent="flex-start" wrap="wrap">
+          <Grid container spacing={3} justifyContent="flex-start" wrap="wrap">
             {teams.map((team) => (
-              <Grid2 item xs={12} sm={6} md={4} lg={3} key={team.id}>
+              <Grid size={{md: 17}} key={team.id}>
                 <Card
                   variant="outlined"
-                  sx={{ cursor: "pointer" }} // Add pointer cursor to indicate clickable
+                  sx={{ cursor: 'pointer' }} // Add pointer cursor to indicate clickable
                 >
                   <CardContent>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                      <Avatar sx={{ bgcolor: "teal" }}>{team.teamName[0]}</Avatar>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      spacing={2}
+                      mb={2}
+                    >
+                      <Avatar sx={{ bgcolor: 'teal' }}>
+                        {team.teamName[0]}
+                      </Avatar>
                       <Box>
                         <Typography variant="h6" color="teal">
                           {team.teamName}
@@ -141,15 +158,28 @@ export default function Chats() {
                         </Typography>
                       </AccordionSummary>
                       <AccordionDetails>
-                        <Stack direction="row" flexWrap="wrap" spacing={1} mt={1}>
+                        <Stack
+                          direction="row"
+                          flexWrap="wrap"
+                          spacing={1}
+                          mt={1}
+                        >
                           {team.channels.length > 0 ? (
                             Object.values(team.channels).map((channelName, index) => (
                               <Chip
                                 key={index}
-                                label={channelName.length > 15 ? `${channelName.substring(0, 15)}...` : channelName}
+                                label={
+                                  channelName.length > 15
+                                    ? `${channelName.substring(0, 15)}...`
+                                    : channelName
+                                }
                                 color="default"
                                 size="small"
-                                onClick={() => navigate(`/teams/${team.id}/channels/${channelName}`)}
+                                onClick={() =>
+                                  navigate(
+                                    `/teams/${team.id}/channels/${channelName}`
+                                  )
+                                }
                               />
                             ))
                           ) : (
@@ -162,9 +192,9 @@ export default function Chats() {
                     </Accordion>
                   </CardContent>
                 </Card>
-              </Grid2>
+              </Grid>
             ))}
-          </Grid2>
+          </Grid>
         )}
       </Box>
     </Container>

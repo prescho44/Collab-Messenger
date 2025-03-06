@@ -13,10 +13,14 @@ const muiTheme = createMuiTheme({
     '0px 1px 5px rgba(0, 0, 0, 0.2)', // 3
     '0px 2px 4px rgba(0, 0, 0, 0.2)', // 4
     '0px 3px 6px rgba(0, 0, 0, 0.23)', // 5
-    // Add more shadows as needed
+    '0px 5px 10px rgba(0, 0, 0, 0.25)', // 6
+    '0px 7px 12px rgba(0, 0, 0, 0.27)', // 7
+    '0px 9px 14px rgba(0, 0, 0, 0.30)', // 8
+    '0px 11px 16px rgba(0, 0, 0, 0.33)', // 9
+    // ... add more if needed
   ],
   palette: {
-    mode: 'dark', // or 'light'
+    mode: 'dark',
   },
 });
 

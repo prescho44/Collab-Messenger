@@ -6,7 +6,19 @@ import { AppContext } from '../../store/app.context';
 import { storage } from '../../configs/firebaseConfig';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import defaultProfileImage from '../../assets/default-avatar.jpg';
-import { Box, Button, CircularProgress, Grid, TextField, Typography, Paper, InputAdornment, IconButton, LinearProgress, Link } from '@mui/material';
+import imageCompression from 'browser-image-compression';
+import {
+  Box,
+  Button,
+  Grid,
+  TextField,
+  Typography,
+  Paper,
+  InputAdornment,
+  IconButton,
+  LinearProgress,
+  Link,
+} from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 
 export default function Register() {
@@ -33,9 +45,9 @@ export default function Register() {
         alert('Please select an image file');
         return;
       }
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+      // Validate file size (max 1MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
         return;
       }
 
@@ -48,6 +60,22 @@ export default function Register() {
     }
   };
 
+  const compressImage = async (file) => {
+    const options = {
+      maxSizeMB: 0.3, // Compress to 300KB
+      maxWidthOrHeight: 400, // Reduce dimensions - sufficient for avatar
+      useWebWorker: true,
+      initialQuality: 0.7, // Initial compression quality (70%)
+    };
+    try {
+      const compressedFile = await imageCompression(file, options);
+      return compressedFile;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      throw error;
+    }
+  };
+
   const uploadImage = async (uid) => {
     if (!imageFile) return defaultAvatar;
 
@@ -55,20 +83,24 @@ export default function Register() {
       setIsUploading(true);
       setUploadProgress(0);
 
+      // Compress image before uploading
+      const compressedImageFile = await compressImage(imageFile);
+
       // Create a unique filename using timestamp
       const timestamp = Date.now();
-      const filename = `${timestamp}_${imageFile.name}`;
+      const filename = `${timestamp}_${compressedImageFile.name}`;
       const storageRef = ref(storage, `avatars/${uid}/${filename}`);
 
       // Create upload task with progress monitoring
-      const uploadTask = uploadBytesResumable(storageRef, imageFile);
+      const uploadTask = uploadBytesResumable(storageRef, compressedImageFile);
 
       // Monitor upload progress
       return new Promise((resolve, reject) => {
         uploadTask.on(
           'state_changed',
           (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             setUploadProgress(Math.round(progress));
           },
           (error) => {
@@ -121,7 +153,7 @@ export default function Register() {
 
       // Register user
       const userCredential = await registerUser(user.email, user.password);
-      console.log('User registered:', userCredential.user.uid); // Debug log      
+      console.log('User registered:', userCredential.user.uid); // Debug log
       // Upload profile image
       const photoURL = await uploadImage(userCredential.user.uid);
       console.log('Photo uploaded:', photoURL); // Debug log
@@ -143,7 +175,6 @@ export default function Register() {
 
       // Redirect to home
       navigate('/');
-
     } catch (error) {
       console.error('Registration error:', error); // Detailed error logging
       alert(error.message);
@@ -158,14 +189,29 @@ export default function Register() {
   };
 
   return (
-    <Box component="main" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+    <Box
+      component="main"
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+      }}
+    >
       <Paper elevation={3} sx={{ padding: 3, width: '100%', maxWidth: 400 }}>
         <Typography variant="h5" align="center" mb={2}>
           Create Account
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} textAlign="center">
-            <Box sx={{ position: 'relative', width: 120, height: 120, margin: '0 auto' }}>
+            <Box
+              sx={{
+                position: 'relative',
+                width: 120,
+                height: 120,
+                margin: '0 auto',
+              }}
+            >
               <img
                 src={imagePreview || defaultAvatar}
                 alt="Profile Preview"
@@ -191,7 +237,11 @@ export default function Register() {
                     textAlign: 'center',
                   }}
                 >
-                  <LinearProgress variant="determinate" value={uploadProgress} sx={{ height: 4 }} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={uploadProgress}
+                    sx={{ height: 4 }}
+                  />
                   <Typography variant="caption">{uploadProgress}%</Typography>
                 </Box>
               )}
@@ -278,11 +328,11 @@ export default function Register() {
 
           {/* "Already have an account?" link */}
           <Typography variant="body2" align="center" mt={3}>
-          Already have an account?{' '}
-          <Link href="/login" variant="body2" sx={{ color: '#1976d2' }}>
-            Sign up
-          </Link>
-        </Typography>
+            Already have an account?{' '}
+            <Link href="/login" variant="body2" sx={{ color: '#1976d2' }}>
+              Sign up
+            </Link>
+          </Typography>
         </Grid>
       </Paper>
     </Box>
