@@ -82,20 +82,15 @@ const ChatView = () => {
   return (
     <Box sx={{ height: '100vh', display: 'flex' }}>
       {/* Sidebar - Chats Component */}
-      <Drawer
+      <Box
         sx={{
-          width: 350,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: 350,
-            boxSizing: 'border-box',
-          },
-        }}
-        variant="permanent"
-        anchor="left"
-      >
+          display: 'flex',
+          flexDirection: 'column',
+          width: '26.75%',
+          ml: 3,
+        }}>     
         <Chats /> {/* Your existing Teams component */}
-      </Drawer>
+        </Box>   
 
       {/* Main Chat Area */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

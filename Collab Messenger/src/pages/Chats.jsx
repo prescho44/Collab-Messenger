@@ -143,7 +143,7 @@ export default function Chats() {
                       <AccordionDetails>
                         <Stack direction="row" flexWrap="wrap" spacing={1} mt={1}>
                           {team.channels.length > 0 ? (
-                            team.channels.map((channelName, index) => (
+                            Object.values(team.channels).map((channelName, index) => (
                               <Chip
                                 key={index}
                                 label={channelName.length > 15 ? `${channelName.substring(0, 15)}...` : channelName}

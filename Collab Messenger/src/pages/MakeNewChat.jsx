@@ -39,7 +39,7 @@ const MakeNewChat = () => {
     };
 console.log(users)
     fetchUsers();
-  }, []);
+  }, [users]);
 
   const uploadTeam = async () => {
     try {
@@ -47,8 +47,8 @@ console.log(users)
       const teamId = newTeamRef.key;
 
       const channelsArray = channelName.split(',').map(channel => channel.trim());
-      const channelsObject = channelsArray.reduce((acc, channel, index) => {
-        acc[`channel_${index}`] = channel; // Use a unique identifier for each channel
+      const channelsObject = channelsArray.reduce((acc, channel) => {
+        acc[channel] = channel; // Use a unique identifier for each channel
         return acc;
       }, {});
       console.log(channelsObject);
