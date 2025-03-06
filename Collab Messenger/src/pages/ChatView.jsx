@@ -21,9 +21,8 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import SaveIcon from '@mui/icons-material/Save';
-import Chats from './Chats'; // Your Chats component import
-
-const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+import Chats from './Chats';
+import EmojiPicker from 'emoji-picker-react';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
@@ -137,8 +136,10 @@ const ChatView = () => {
     setEmojiAnchorEl(event.currentTarget);
   };
 
-  const handleEmojiSelect = async (emoji) => {
+  const handleEmojiSelect = async (emojiObject) => {
     if (!selectedMessage) return;
+
+    const emoji = emojiObject.emoji;
 
     try {
       const messageRef = ref(
@@ -220,8 +221,8 @@ const ChatView = () => {
           width: '26.75%',
           ml: 3,
         }}>     
-        <Chats /> {/* Your existing Teams component */}
-        </Box>   
+        <Chats />
+      </Box>   
 
       {/* Main Chat Area */}
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -343,17 +344,14 @@ const ChatView = () => {
             horizontal: 'center',
           }}
         >
-          <Box sx={{ p: 1, display: 'flex', gap: 1 }}>
-            {EMOJI_LIST.map((emoji) => (
-              <IconButton
-                key={emoji}
-                onClick={() => handleEmojiSelect(emoji)}
-                size="small"
-              >
-                {emoji}
-              </IconButton>
-            ))}
-          </Box>
+          <EmojiPicker 
+            onEmojiClick={handleEmojiSelect}
+            autoFocusSearch={false}
+            // Optional customization props:
+            // height={350}
+            // width={300}
+            // emojiStyle="native"
+          />
         </Popover>
 
         <Divider />
