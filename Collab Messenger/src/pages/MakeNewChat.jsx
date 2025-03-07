@@ -33,20 +33,21 @@ const MakeNewChat = () => {
       const snapshot = await get(usersRef);
       if (snapshot.exists()) {
         const usersData = snapshot.val();
-        const usersList = Object.values(usersData).map(user => user.handle);
+        const usersList = Object.values(usersData).map((user) => user.handle);
         setUsers(usersList);
       }
     };
-console.log(users)
     fetchUsers();
-  }, [users]);
+  }, []);
 
   const uploadTeam = async () => {
     try {
       const newTeamRef = push(ref(db, 'teams'));
       const teamId = newTeamRef.key;
 
-      const channelsArray = channelName.split(',').map(channel => channel.trim());
+      const channelsArray = channelName
+        .split(',')
+        .map((channel) => channel.trim());
       const channelsObject = channelsArray.reduce((acc, channel) => {
         acc[channel] = channel; // Use a unique identifier for each channel
         return acc;
@@ -56,7 +57,7 @@ console.log(users)
       const team = {
         teamName,
         channels: channelsObject,
-        members: members.split(',').map(member => member.trim()),
+        members: members.split(',').map((member) => member.trim()),
         owner: userData?.handle,
         createdOn: new Date().toString(),
         uid: teamId,
@@ -102,9 +103,15 @@ console.log(users)
       return;
     }
 
-    const memberList = members.split(',').map(member => member.trim());
-    const invalidMembers = memberList.filter(member => !users.includes(member));
-console.log(memberList)
+    if (teamName.length < 3 || teamName.length > 40) {
+      return alert('Team name must be between 3 and 40 characters');
+    }
+
+    const memberList = members.split(',').map((member) => member.trim());
+    const invalidMembers = memberList.filter(
+      (member) => !users.includes(member)
+    );
+    console.log(memberList);
     if (invalidMembers.length > 0) {
       setMemberError(`Invalid members: ${invalidMembers.join(', ')}`);
       return;
@@ -218,24 +225,28 @@ console.log(memberList)
 
           <Box>
             <Typography mb={2} color="white">
-              Members 
+              Members
             </Typography>
             <Autocomplete
               multiple
               freeSolo
               options={users}
-              value={members.split(',').map(member => member.trim())}
+              value={members.split(',').map((member) => member.trim())}
               onChange={(event, newValue) => {
                 setMembers(newValue.join(', '));
               }}
               renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    variant="outlined"
-                    label={option}
-                    {...getTagProps({ index })}
-                  />
-                ))
+                value.map((option, index) => {
+                  const { key, ...chipProps } = getTagProps({ index });
+                  return (
+                    <Chip
+                      key={key}
+                      variant="outlined"
+                      label={option}
+                      {...chipProps}
+                    />
+                  );
+                })
               }
               renderInput={(params) => (
                 <TextField

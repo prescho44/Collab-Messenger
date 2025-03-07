@@ -16,41 +16,62 @@ import Profile from './features/auth/Profile';
 import Header from './components/Header/Header';
 import MakeNewChat from './pages/MakeNewChat';
 import ChatView from './pages/ChatView';
+import { Box, CircularProgress } from '@mui/material';
 
 const App = () => {
+  const [user, loading] = useAuthState(auth);
+
   const [appState, setAppState] = useState({
     user: null,
     userData: null,
+    isInitialized: false
   });
 
-  const [user, loading, error] = useAuthState(auth);
-
   useEffect(() => {
-    if (appState.user !== user) {
-      setAppState((prevState) => ({
-        ...prevState,
+    if (!loading) {
+      setAppState(prev => ({
+        ...prev,
         user,
+        isInitialized: !user
       }));
     }
-  }, [user, appState.user]);
+  }, [user, loading]);
 
   useEffect(() => {
-    if (!user) return;
+    if (user && !appState.userData) {
+      getUserData(user.uid)
+        .then((data) => {
+          setAppState(prev => ({
+            ...prev,
+            userData: data,
+            isInitialized: true
+          }));
+        })
+        .catch((error) => {
+          console.error(error);
+          setAppState(prev => ({
+            ...prev,
+            isInitialized: true
+          }));
+        });
+    }
+  }, [user, appState.userData]);
 
-    loading && console.log('loading user');
-    error && console.log('error loading user');
-
-    getUserData(user.uid)
-      .then((data) => {
-        setAppState((prevState) => ({
-          ...prevState,
-          userData: data,
-        }));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [user, loading, error]);
+  if (loading || !appState.isInitialized) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress size={100} />
+      </Box>
+    );
+  }
 
   return (
     <BrowserRouter>
