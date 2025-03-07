@@ -26,6 +26,7 @@
     "@mui/x-data-grid": "^7.27.2",
     "@tailwindcss/vite": "^4.0.9",
     "browser-image-compression": "^2.0.2",
+    "emoji-picker-react": "^4.12.0",
     "firebase": "^11.3.1",
     "framer-motion": "^12.4.10",
     "next-themes": "^0.4.4",

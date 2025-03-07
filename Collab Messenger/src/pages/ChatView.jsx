@@ -16,13 +16,11 @@ import {
   Menu,
   MenuItem,
   Popover,
-} from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import Chats from "./Chats"; // Your Chats component import
-import VideoCallIcon from "@mui/icons-material/VideoCall";
-
-const EMOJI_LIST = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+} from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Chats from './Chats';
+import Picker from 'emoji-picker-react';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
@@ -136,8 +134,10 @@ const ChatView = () => {
     setEmojiAnchorEl(event.currentTarget);
   };
 
-  const handleEmojiSelect = async (emoji) => {
+  const handleEmojiSelect = async (emojiObject) => {
     if (!selectedMessage) return;
+
+    const emoji = emojiObject.emoji;
 
     try {
       const messageRef = ref(
@@ -351,6 +351,30 @@ const ChatView = () => {
             )}
           </Menu>
 
+        <Popover
+          open={Boolean(emojiAnchorEl)}
+          anchorEl={emojiAnchorEl}
+          onClose={() => setEmojiAnchorEl(null)}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+        >
+          <Picker
+            reactionsDefaultOpen={true}
+            theme='dark'
+            emojiStyle='native'
+            skinTonePickerLocation='none'
+            onReactionClick={handleEmojiSelect}
+            onEmojiClick={handleEmojiSelect}
+            height={400}
+            width={350}
+          />
+        </Popover>
           <Popover
             open={Boolean(emojiAnchorEl)}
             anchorEl={emojiAnchorEl}

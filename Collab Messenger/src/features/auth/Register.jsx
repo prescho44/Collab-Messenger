@@ -144,6 +144,11 @@ export default function Register() {
       return alert('Password must be at least 6 characters long');
     }
 
+    //validate userName
+    if (user.handle.length < 5 || user.handle.length > 35) {
+      return alert('Username must be between 5 and 35 characters long');
+    }
+
     try {
       // Check if username is taken
       const userFromDB = await getUserByHandle(user.handle);

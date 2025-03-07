@@ -5,11 +5,15 @@ import { AppContext } from "../../store/app.context";
 
 export default function Authenticated({ children }) {
 
-  const { user } = useContext(AppContext);
+  const { user, isInitialized } = useContext(AppContext);
   const location = useLocation();
 
+  if (!isInitialized) {
+    return null;
+  }
+
   if (!user) {
-    return <Navigate replace to="/login" state={{ from: location }} />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return (
