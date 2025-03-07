@@ -16,6 +16,7 @@ import Profile from './features/auth/Profile';
 import Header from './components/Header/Header';
 import MakeNewChat from './pages/MakeNewChat';
 import ChatView from './pages/ChatView';
+import Footer from './components/Footer';
 
 const App = () => {
   const [appState, setAppState] = useState({
@@ -73,6 +74,7 @@ const App = () => {
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Footer />
       </AppContext.Provider>
     </BrowserRouter>
   );

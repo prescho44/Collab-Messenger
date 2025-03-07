@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { ThemeProvider, createTheme as createMuiTheme } from '@mui/material/styles';
 import App from './App';
 import { CssBaseline } from '@mui/material';
+import { ThemeContextProvider } from './store/theme.context';
 
 // Create a custom MUI theme
 const muiTheme = createMuiTheme({
@@ -17,18 +18,16 @@ const muiTheme = createMuiTheme({
     '0px 7px 12px rgba(0, 0, 0, 0.27)', // 7
     '0px 9px 14px rgba(0, 0, 0, 0.30)', // 8
     '0px 11px 16px rgba(0, 0, 0, 0.33)', // 9
-    // ... add more if needed
   ],
-  palette: {
-    mode: 'dark',
-  },
+  
 });
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ThemeProvider theme={muiTheme}>
+    <ThemeContextProvider theme={muiTheme}>
       <CssBaseline />
       <App />
-    </ThemeProvider>
+    </ThemeContextProvider>
   </React.StrictMode>
 );

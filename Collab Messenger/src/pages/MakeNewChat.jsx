@@ -19,7 +19,7 @@ const MakeNewChat = () => {
 
   const [teamName, setTeamName] = useState('');
   const [channelName, setChannelName] = useState('');
-  const [members, setMembers] = useState('');
+  const [members, setMembers] = useState(' ');
   const [error, setError] = useState('');
   const [users, setUsers] = useState([]);
   const [memberError, setMemberError] = useState('');
@@ -37,9 +37,8 @@ const MakeNewChat = () => {
         setUsers(usersList);
       }
     };
-console.log(users)
     fetchUsers();
-  }, [users]);
+  }, []);
 
   const uploadTeam = async () => {
     try {
@@ -51,7 +50,6 @@ console.log(users)
         acc[channel] = channel; // Use a unique identifier for each channel
         return acc;
       }, {});
-      console.log(channelsObject);
 
       const team = {
         teamName,
@@ -63,7 +61,6 @@ console.log(users)
       };
 
       await set(ref(db, `teams/${teamId}`), team);
-      console.log(channelsObject);
 
       for (const [channelId, channel] of Object.entries(channelsObject)) {
         const channelData = {
@@ -104,14 +101,12 @@ console.log(users)
 
     const memberList = members.split(',').map(member => member.trim());
     const invalidMembers = memberList.filter(member => !users.includes(member));
-console.log(memberList)
     if (invalidMembers.length > 0) {
       setMemberError(`Invalid members: ${invalidMembers.join(', ')}`);
       return;
     }
 
     setMemberError('');
-    console.log('Team created:', { teamName, channelName, members });
     uploadTeam();
   };
 
@@ -128,13 +123,13 @@ console.log(memberList)
   return (
     <Box
       p={5}
-      maxWidth="600px"
+      maxWidth={{ xs: '100%', sm: '600px' }}
       mx="auto"
-      bgcolor="grey.900"
+      bgcolor="inheirt"
       borderRadius="md"
       boxShadow={3}
     >
-      <Typography variant="h5" color="white" gutterBottom>
+      <Typography variant="h5" color="inherit" gutterBottom>
         Create a Team
       </Typography>
 
@@ -147,7 +142,7 @@ console.log(memberList)
       <form onSubmit={handleSubmit}>
         <Stack spacing={4}>
           <Box>
-            <Typography mb={2} color="white">
+            <Typography mb={2} color="inherit">
               Team Name
             </Typography>
             <TextField
@@ -176,13 +171,13 @@ console.log(memberList)
                 },
               }}
             />
-            <Typography variant="caption" color="white" textAlign="right">
+            <Typography variant="caption" color="inherit" textAlign="right">
               {teamName.length}/64
             </Typography>
           </Box>
 
           <Box>
-            <Typography mb={2} color="white">
+            <Typography mb={2} color="inherit">
               Channel Name
             </Typography>
             <TextField

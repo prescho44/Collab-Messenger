@@ -2,7 +2,7 @@ import { db } from '../configs/firebaseConfig';
 import { ref, onValue } from 'firebase/database';
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppContext } from '../store/app.context'; // Assuming you have this context to manage the user data
+import { AppContext } from '../store/app.context';
 import {
   Box,
   Button,
@@ -20,10 +20,9 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Grid from '@mui/material/Grid2'; // Correct import for Grid2
 
 export default function Chats() {
-  const { userData } = useContext(AppContext); // Access the current user data from context
+  const { userData } = useContext(AppContext);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -41,7 +40,6 @@ export default function Chats() {
             channels: team.channels ? Object.keys(team.channels) : [],
             members: team.members ? Object.values(team.members) : [],
           }))
-          // Filter teams where the current user is a member or owner
           .filter(
             (team) =>
               team.members.includes(userData?.handle) ||
@@ -50,153 +48,60 @@ export default function Chats() {
 
         setTeams(teamsList);
       } else {
-        setTeams([]); // Handle case with no data
+        setTeams([]);
       }
       setLoading(false);
     });
-  }, [userData?.handle]); // Depend on userData.handle to re-fetch when it changes
+  }, [userData?.handle]);
 
   return (
-    <Container
-      component="main"
-      sx={{
-        width: '100%',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'gray.100',
-        padding: 0,
-        margin: 0,
-      }}
-    >
-      <Box
-        p={1}
-        m={0}
-        display="flex"
-        flexDirection="column"
-        width="100%"
-        overflow="auto"
-        sx={{
-          gap: 1,
-          minWidth: 300,
-          borderRight: '1px solid #ddd',
-          overflowY: 'auto',
-          backgroundColor: 'gray.100',
-        }} // Handle overflow by adding scrollbar
-      >
-        <Typography
-          variant="h4"
-          fontWeight="bold"
-          textAlign="left"
-          gutterBottom
-          onClick={() => navigate('/')}
-        >
-          Teams & Chats
-        </Typography>
-        <Button
-          variant="outlined"
-          color="primary"
-          sx={{
-            width: '100%',
-            maxWidth: 200,
-            padding: '8px 16px',
-            mt: 2,
-            mb: 2,
-          }} // Set a maxWidth for button
-          onClick={() => navigate('/new-chat')}
-        >
-          Make a New Chat
-        </Button>
-
-        {loading ? (
-          <Stack alignItems="center" justifyContent="center" spacing={2} mt={5}>
-            <CircularProgress color="primary" />
-            <Typography color="primary">Loading teams...</Typography>
-          </Stack>
-        ) : teams.length === 0 ? (
-          <Typography color="textSecondary" textAlign="center">
-            No teams available
-          </Typography>
-        ) : (
-          <Grid container spacing={3} justifyContent="flex-start" wrap="wrap">
-            {teams.map((team) => (
-              <Grid size={{md: 17}} key={team.id}>
-                <Card
-                  variant="outlined"
-                  sx={{ cursor: 'pointer' }} // Add pointer cursor to indicate clickable
-                >
-                  <CardContent>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      spacing={2}
-                      mb={2}
-                    >
-                      <Avatar sx={{ bgcolor: 'teal' }}>
-                        {team.teamName[0]}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6" color="teal">
-                          {team.teamName}
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          Owner: {team.owner}
-                        </Typography>
-                      </Box>
+    <Container component="main" sx={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'gray.100', padding: 2 }}>
+      <Typography variant="h4" fontWeight="bold" gutterBottom onClick={() => navigate('/')}>Teams & Chats</Typography>
+      <Button variant="contained" color="primary" sx={{ maxWidth: 200, mb: 2 }} onClick={() => navigate('/new-chat')}>New Chat</Button>
+      {loading ? (
+        <Stack alignItems="center" justifyContent="center" spacing={2} mt={5}>
+          <CircularProgress color="primary" />
+          <Typography color="primary">Loading teams...</Typography>
+        </Stack>
+      ) : (
+        <Box sx={{ height: "100%", width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {teams.map((team) => (
+            <Card key={team.id} variant="outlined" sx={{ padding: 2 }}>
+              <CardContent>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  <Avatar sx={{ bgcolor: 'teal' }}>{team.teamName[0]}</Avatar>
+                  <Box>
+                    <Typography variant="h6" fontWeight="bold">{team.teamName}</Typography>
+                    <Typography variant="body2" color="textSecondary">Owner: {team.owner}</Typography>
+                  </Box>
+                </Stack>
+                <Divider sx={{ my: 2 }} />
+                <Accordion sx={{ width: '100%', boxShadow: 'none' }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="body2" color="primary">View Channels</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Stack direction="column" spacing={1}>
+                      {team.channels.length > 0 ? (
+                        team.channels.map((channelName, index) => (
+                          <Chip
+                            key={index}
+                            label={channelName}
+                            size="small"
+                            onClick={() => navigate(`/teams/${team.id}/channels/${channelName}`)}
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">No channels</Typography>
+                      )}
                     </Stack>
-
-                    <Divider sx={{ my: 1 }} />
-
-                    <Accordion>
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls="panel1a-content"
-                        id="panel1a-header"
-                      >
-                        <Typography variant="subtitle1" color="primary">
-                          Channels
-                        </Typography>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Stack
-                          direction="row"
-                          flexWrap="wrap"
-                          spacing={1}
-                          mt={1}
-                        >
-                          {team.channels.length > 0 ? (
-                            Object.values(team.channels).map((channelName, index) => (
-                              <Chip
-                                key={index}
-                                label={
-                                  channelName.length > 15
-                                    ? `${channelName.substring(0, 15)}...`
-                                    : channelName
-                                }
-                                color="default"
-                                size="small"
-                                onClick={() =>
-                                  navigate(
-                                    `/teams/${team.id}/channels/${channelName}`
-                                  )
-                                }
-                              />
-                            ))
-                          ) : (
-                            <Typography variant="body2" color="textSecondary">
-                              No channels
-                            </Typography>
-                          )}
-                        </Stack>
-                      </AccordionDetails>
-                    </Accordion>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
+                  </AccordionDetails>
+                </Accordion>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      )}
     </Container>
   );
 }
