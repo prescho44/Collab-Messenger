@@ -84,12 +84,11 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
           </Route>
           <Route element={<Private />}>
             {/* if user is logged */}
+            <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
-            <Route path="/" element={<Home />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
             
           </Route>
