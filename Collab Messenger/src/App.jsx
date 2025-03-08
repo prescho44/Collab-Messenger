@@ -18,6 +18,7 @@ import MakeNewChat from './pages/MakeNewChat';
 import ChatView from './pages/ChatView';
 import Footer from './components/Footer';
 import { Box, CircularProgress } from '@mui/material';
+import VideoCall from './components/VideoCall';
 
 const App = () => {
   const [user, loading] = useAuthState(auth);
@@ -90,6 +91,7 @@ const App = () => {
             <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
+            <Route path="/video-call" element={<VideoCall />} />
             
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -134,7 +134,7 @@ const MakeNewChat = () => {
       p={5}
       maxWidth={{ xs: '100%', sm: '600px' }}
       mx="auto"
-      bgcolor="inheirt"
+      bgcolor="inherit"
       borderRadius="md"
       boxShadow={3}
     >

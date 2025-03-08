@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../configs/firebaseConfig';
 import { ref, onValue, push, set, update, remove } from 'firebase/database';
 import { AppContext } from '../store/app.context';
@@ -24,6 +24,7 @@ import Picker from 'emoji-picker-react';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
 
+
 const ChatView = () => {
   const { teamId, channelId } = useParams();
   const { themeMode } = useContext(ThemeContext);
@@ -35,6 +36,8 @@ const ChatView = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!teamId || !channelId) return;
@@ -241,7 +244,7 @@ const ChatView = () => {
           <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
             <Typography variant="h6">{channelId}</Typography>
           </Box>
-          <IconButton color="primary" onClick={() => alert('Video Call')}>
+          <IconButton color="primary" onClick={() => navigate('/video-call')}>
             <VideoCallIcon />
           </IconButton>
         </Box>
