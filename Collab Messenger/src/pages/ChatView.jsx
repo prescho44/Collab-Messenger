@@ -16,6 +16,7 @@ import {
   Menu,
   MenuItem,
   Popover,
+  Badge,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -23,7 +24,7 @@ import Chats from './Chats';
 import Picker from 'emoji-picker-react';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
-
+import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
@@ -53,6 +54,20 @@ const ChatView = () => {
             timestamp: new Date(message.timestamp),
           })
         );
+
+        // Mark messages as read
+        messagesList.forEach((message) => {
+          if (!message.readBy || !message.readBy[user.uid]) {
+            const messageRef = ref(db, `channels/${teamId}/${channelId}/messages/${message.id}`);
+            update(messageRef, {
+              readBy: {
+                ...(message.readBy || {}),
+                [user.uid]: true,
+              },
+            });
+          }
+        });
+
         setMessages(messagesList.sort((a, b) => a.timestamp - b.timestamp));
       } else {
         setMessages([]);
@@ -61,7 +76,7 @@ const ChatView = () => {
     });
 
     return () => unsubscribe();
-  }, [teamId, channelId]);
+  }, [teamId, channelId, user.uid]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -82,6 +97,9 @@ const ChatView = () => {
         senderName: userData?.handle,
         senderPhoto: userData?.photo,
         edited: false,
+        readBy: {
+          [user.uid]: true,
+        },
       });
 
       setNewMessage('');

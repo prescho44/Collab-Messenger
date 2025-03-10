@@ -2,7 +2,8 @@ import { AppContext } from '../../store/app.context';
 import { useContext, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { loginUser } from '../../services/auth.service';
-import { Box, Button, TextField, Typography, Container, Link, Grid, Paper, CircularProgress } from '@mui/material';
+import { Box, Button, TextField, Typography, Container, Link, Paper, CircularProgress } from '@mui/material';
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const { setAppState } = useContext(AppContext);
@@ -17,7 +18,7 @@ const Login = () => {
 
   const login = () => {
     if (!user.email || !user.password) {
-      alert('Please enter both email and password.');
+      toast.error('Please enter both email and password.');
       return;
     }
 
@@ -32,7 +33,7 @@ const Login = () => {
       })
       .catch((error) => {
         console.error(error.message);
-        alert(error.message);
+        toast.error(error.message);
       })
       .finally(() => {
         setLoading(false);
@@ -53,41 +54,35 @@ const Login = () => {
           Login
         </Typography>
         <form onSubmit={(e) => e.preventDefault()}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                value={user.email}
-                onChange={updateUser('email')}
-                type="email"
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Password"
-                variant="outlined"
-                fullWidth
-                value={user.password}
-                onChange={updateUser('password')}
-                type="password"
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                onClick={login}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} color="secondary" /> : 'Login'}
-              </Button>
-            </Grid>
-          </Grid>
+          <TextField
+            label="Email"
+            variant="outlined"
+            fullWidth
+            value={user.email}
+            onChange={updateUser('email')}
+            type="email"
+            required
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            label="Password"
+            variant="outlined"
+            fullWidth
+            value={user.password}
+            onChange={updateUser('password')}
+            type="password"
+            required
+            sx={{ mb: 2 }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={login}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} color="secondary" /> : 'Login'}
+          </Button>
         </form>
         <Typography variant="body2" align="center" mt={2}>
           Don't have an account?{' '}

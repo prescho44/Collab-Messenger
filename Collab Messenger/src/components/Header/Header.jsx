@@ -1,4 +1,3 @@
-// filepath: c:\Users\User\Desktop\CollabMessenger\Collab-Messenger\Collab Messenger\src\components\Header\Header.jsx
 import { useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -16,6 +15,7 @@ import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import Notifications from "../Notifications"; // ✅ Importing Notification Component
 
 export default function Header() {
   const { user, setAppState } = useContext(AppContext);
@@ -74,14 +74,20 @@ export default function Header() {
             </>
           ) : (
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton onClick={toggleTheme} color="inherit"
+              {/* ✅ Notification Dropdown */}
+              <Notifications />
+
+              <IconButton
+                onClick={toggleTheme}
+                color="inherit"
                 sx={{
                   bgcolor: "inherit",
                   borderRadius: 2,
                   padding: 1,
                   "&:hover": { bgcolor: "primary.light" },
                   mr: 2,
-                }}>
+                }}
+              >
                 {themeMode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
               </IconButton>
               <IconButton
@@ -108,8 +114,7 @@ export default function Header() {
                   mr: 2,
                 }}
               >
-                <LogoutIcon sx={{ fontSize: 30 }
-              } />
+                <LogoutIcon sx={{ fontSize: 30 }} />
               </IconButton>
             </Box>
           )}

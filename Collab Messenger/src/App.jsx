@@ -19,6 +19,8 @@ import ChatView from './pages/ChatView';
 import Footer from './components/Footer';
 import { Box, CircularProgress } from '@mui/material';
 import VideoCall from './components/VideoCall';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   const [user, loading] = useAuthState(auth);
@@ -92,11 +94,11 @@ const App = () => {
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
             <Route path="/video-call" element={<VideoCall />} />
-            
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
+        <ToastContainer />
       </AppContext.Provider>
     </BrowserRouter>
   );
