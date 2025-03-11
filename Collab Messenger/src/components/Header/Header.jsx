@@ -11,7 +11,7 @@ import {
 import { AppContext } from "../../store/app.context";
 import { ThemeContext } from "../../store/theme.context";
 import { logoutUser } from "../../services/auth.service";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
+import Search from "../Search/Search";import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -48,6 +48,8 @@ export default function Header() {
           Discord Clone
         </Typography>
 
+        <Search />
+        
         <Box>
           {!user ? (
             <>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { getUserData } from '../../services/user.service';
 import { Avatar, Box, Typography, CircularProgress } from '@mui/material';
 
-const Profile = ({ userId }) => {
+const Profile = () => {
+  const { userId } = useParams();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +14,7 @@ const Profile = ({ userId }) => {
       setLoading(false);
       return;
     }
-
+ 
     getUserData(userId)
       .then((data) => {
         setUserData(data);
