@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useContext } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -7,15 +7,16 @@ import {
   Typography,
   Box,
   IconButton,
-} from "@mui/material";
-import { AppContext } from "../../store/app.context";
-import { ThemeContext } from "../../store/theme.context";
-import { logoutUser } from "../../services/auth.service";
-import Search from "../Search/Search";import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import LogoutIcon from "@mui/icons-material/Logout";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import Notifications from "../Notifications"; // ✅ Importing Notification Component
+} from '@mui/material';
+import { AppContext } from '../../store/app.context';
+import { ThemeContext } from '../../store/theme.context';
+import { logoutUser } from '../../services/auth.service';
+import Search from '../Search/Search';
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import LogoutIcon from '@mui/icons-material/Logout';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import Notifications from '../Notifications'; // ✅ Importing Notification Component
 
 export default function Header() {
   const { user, setAppState } = useContext(AppContext);
@@ -29,7 +30,7 @@ export default function Header() {
           user: null,
           userData: null,
         });
-        navigate("/");
+        navigate('/');
       })
       .catch((error) => {
         console.error(error.message);
@@ -38,23 +39,23 @@ export default function Header() {
 
   return (
     <AppBar position="sticky" color="primary" elevation={4}>
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography
           variant="h6"
           component={NavLink}
           to="/"
-          sx={{ textDecoration: "none", color: "inherit", fontWeight: "bold" }}
+          sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}
         >
           Discord Clone
         </Typography>
 
         <Search />
-        
+
         <Box>
           {!user ? (
             <>
               <IconButton onClick={toggleTheme} color="inherit">
-                {themeMode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+                {themeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
               </IconButton>
               <Button
                 component={NavLink}
@@ -75,7 +76,7 @@ export default function Header() {
               </Button>
             </>
           ) : (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {/* ✅ Notification Dropdown */}
               <Notifications />
 
@@ -83,23 +84,23 @@ export default function Header() {
                 onClick={toggleTheme}
                 color="inherit"
                 sx={{
-                  bgcolor: "inherit",
+                  bgcolor: 'inherit',
                   borderRadius: 2,
                   padding: 1,
-                  "&:hover": { bgcolor: "primary.light" },
+                  '&:hover': { bgcolor: 'primary.light' },
                   mr: 2,
                 }}
               >
-                {themeMode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+                {themeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
               </IconButton>
               <IconButton
-                onClick={() => navigate("/profile")}
+                onClick={() => navigate('/profile')}
                 color="inherit"
                 sx={{
-                  bgcolor: "inherit",
+                  bgcolor: 'inherit',
                   borderRadius: 2,
                   padding: 1,
-                  "&:hover": { bgcolor: "primary.light" },
+                  '&:hover': { bgcolor: 'primary.light' },
                   mr: 2,
                 }}
               >
@@ -109,10 +110,10 @@ export default function Header() {
                 onClick={logout}
                 color="inherit"
                 sx={{
-                  bgcolor: "inherit",
+                  bgcolor: 'inherit',
                   borderRadius: 2,
                   padding: 1,
-                  "&:hover": { bgcolor: "red" },
+                  '&:hover': { bgcolor: 'red' },
                   mr: 2,
                 }}
               >
