@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import { AppContext } from './store/app.context';
 import { useEffect, useState } from 'react';
@@ -22,22 +22,24 @@ import VideoCall from './components/VideoCall';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import SearchResults from './components/Search/SearchResults';
+import 'react-toastify/dist/ReactToastify.css';
 
-const App = () => {
+// Wrapper component to handle conditional footer rendering
+const AppContent = () => {
+  const location = useLocation();
   const [user, loading] = useAuthState(auth);
-
   const [appState, setAppState] = useState({
     user: null,
     userData: null,
-    isInitialized: false
+    isInitialized: false,
   });
 
   useEffect(() => {
     if (!loading) {
-      setAppState(prev => ({
+      setAppState((prev) => ({
         ...prev,
         user,
-        isInitialized: !user
+        isInitialized: !user,
       }));
     }
   }, [user, loading]);
@@ -46,17 +48,17 @@ const App = () => {
     if (user && !appState.userData) {
       getUserData(user.uid)
         .then((data) => {
-          setAppState(prev => ({
+          setAppState((prev) => ({
             ...prev,
             userData: data,
-            isInitialized: true
+            isInitialized: true,
           }));
         })
         .catch((error) => {
           console.error(error);
-          setAppState(prev => ({
+          setAppState((prev) => ({
             ...prev,
-            isInitialized: true
+            isInitialized: true,
           }));
         });
     }
@@ -78,31 +80,65 @@ const App = () => {
     );
   }
 
+  // Check if current path matches chat view
+  const isInChatView = location.pathname.includes('/teams/');
+
+  return (
+    <AppContext.Provider value={{ ...appState, setAppState }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {appState.user && <Header />}
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 64px)', // Subtract header height
+            overflow: 'hidden',
+          }}
+        >
+          <Routes>
+            <Route element={<Public />}>
+              {/* user is not logged in */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Route>
+            <Route element={<Private />}>
+              {/* user is logged in */}
+              <Route
+                path="/teams/:teamId/channels/:channelId"
+                element={<ChatView />}
+              />
+              <Route path="/profile" element={<Profile userId={user?.uid} />} />
+              <Route path="/profile/:userId" element={<Profile />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/new-chat" element={<MakeNewChat />} />
+              <Route path="/video-call" element={<VideoCall />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Box>
+        {!isInChatView && (
+          <>
+            <Footer />
+          </>
+        )}
+        <ToastContainer />
+      </Box>
+    </AppContext.Provider>
+  );
+};
+
+const App = () => {
   return (
     <BrowserRouter>
-      <AppContext.Provider value={{ ...appState, setAppState }}>
-        {appState.user && <Header />}
-        <Routes>
-          <Route element={<Public />}>
-            {/* user is not logged in */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
-          <Route element={<Private />}>
-            {/* if user is logged */}
-            <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
-            <Route path="/profile" element={<Profile userId={user?.uid} />} />
-            <Route path="/profile/:userId" element={<Profile />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/new-chat" element={<MakeNewChat />} />
-            <Route path="/video-call" element={<VideoCall />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-        <Footer />
-        <ToastContainer />
-      </AppContext.Provider>
+      <AppContent />
     </BrowserRouter>
   );
 };

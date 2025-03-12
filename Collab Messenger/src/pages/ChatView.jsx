@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import Chats from './Chats';
 import Picker from 'emoji-picker-react';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
@@ -38,6 +39,8 @@ const ChatView = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [messageInputAnchorEl, setMessageInputAnchorEl] = useState(null);
 
   const navigate = useNavigate();
 
@@ -216,6 +219,11 @@ const ChatView = () => {
     handleMenuClose();
   };
 
+  const onEmojiClick = (emojiObject) => {
+    setNewMessage((prevMessage) => prevMessage + emojiObject.emoji);
+    setShowEmojiPicker(false);
+  };
+
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -237,7 +245,8 @@ const ChatView = () => {
   }
 
   return (
-    <Box sx={{ height: '90vh', display: 'flex' }}>
+    <Box sx={{ height: 'calc(100vh - 64px)', // Subtract header height
+      overflow: 'hidden', display: 'flex' }}>
       {/* Sidebar - Chats Component */}
       <Box
         sx={{
@@ -417,6 +426,16 @@ const ChatView = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
               />
               <IconButton
+                type="button"
+                color="primary"
+                onClick={(e) => {
+                  setMessageInputAnchorEl(e.currentTarget);
+                  setShowEmojiPicker(!showEmojiPicker);
+                }}
+              >
+                <EmojiEmotionsIcon />
+              </IconButton>
+              <IconButton
                 type="submit"
                 color="primary"
                 disabled={!newMessage.trim()}
@@ -425,6 +444,27 @@ const ChatView = () => {
               </IconButton>
             </Stack>
           </form>
+          <Popover
+            open={showEmojiPicker}
+            anchorEl={messageInputAnchorEl}
+            onClose={() => setShowEmojiPicker(false)}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+          >
+            <Picker
+              theme={themeMode === 'dark' ? 'dark' : 'light'}
+              emojiStyle="native"
+              onEmojiClick={onEmojiClick}
+              height={400}
+              width={350}
+            />
+          </Popover>
         </Box>
       </Box>
     </Box>
