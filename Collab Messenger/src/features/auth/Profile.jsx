@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getUserData } from '../../services/user.service';
-import { Avatar, Box, Typography, CircularProgress } from '@mui/material';
+import { Avatar, Box, Typography, CircularProgress, Button } from '@mui/material';
 
 const Profile = () => {
   const { userId } = useParams();
@@ -10,13 +10,14 @@ const Profile = () => {
 
   useEffect(() => {
     if (!userId) {
-      console.error('No userId provided');
+      console.error('No uId provided');
       setLoading(false);
       return;
     }
  
     getUserData(userId)
       .then((data) => {
+        console.log('Fetched user data:', data); // Debug log
         setUserData(data);
       })
       .catch((error) => {
@@ -43,18 +44,26 @@ const Profile = () => {
         sx={{ width: 100, height: 100, margin: 'auto' }}
       />
       <Typography variant="h4" mt={2}>
-        {userData.name}
+        {userData.username}
       </Typography>
-      <Typography variant="body1" mt={1}>
+      <Typography variant="body2" mt={1}>
         {userData.email}
       </Typography>
       <Typography variant="body2" mt={1}>
-        {userData.bio}
+        {userData.handle}
       </Typography>
       <Typography variant="body2" mt={1}>
-        {userData.location}
+        {userData.phoneNumber}
       </Typography>
-      {/* Add more user details here */}
+      <Box sx={{ mt: 2 }}>
+        <Button variant="contained" color="primary" sx={{ mr: 2 }}>
+          Send Message
+        </Button>
+        <Button variant="contained" color="primary">
+          Invite to Team
+        </Button>
+      </Box>
+      
     </Box>
   );
 };

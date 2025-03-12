@@ -27,7 +27,8 @@ const SearchResults = () => {
       if (!queryParam) return;
 
       console.log('Fetching results for query:', queryParam); // Debug log
-
+      setLoading(true);
+      
       const usersRef = ref(db, 'users');
       const teamsRef = ref(db, 'teams');
 
@@ -80,6 +81,7 @@ const SearchResults = () => {
   }, [queryParam]);
 
   const handleClick = (id, type) => {
+    console.log(`Navigating to ${type} with id: ${id}`); // Debug log
     if (type === 'user') {
       navigate(`/profile/${id}`);
     } else if (type === 'team') {
@@ -133,7 +135,7 @@ const SearchResults = () => {
                   <CardActions>
                     <Box display="flex" justifyContent="center" width="100%">
                     <Button
-                      onClick={() => handleClick(result.uid || result.id, result.username ? 'user' : 'team')}
+                      onClick={() => handleClick(result.uid || result.id, result.handle ? 'user' : 'team')}
                       sx={{
                         color: theme.palette.mode === 'dark' ? 'black' : 'white',
                         backgroundColor: theme.palette.mode === 'dark' ? 'white' : 'primary.main',
