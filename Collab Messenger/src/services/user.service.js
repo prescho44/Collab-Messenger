@@ -21,7 +21,8 @@ export const getUserData = async (uid) => {
   }
 
   console.log('Querying user data for UID:', uid); // Debug log
-  const snapshot = await get(query(ref(db, 'users'), orderByChild('uid'), equalTo(uid)));
+  const userQuery = query(ref(db, 'users'), orderByChild('uid'), equalTo(uid));
+  const snapshot = await get(userQuery);
   if (snapshot.exists()) {
     const users = snapshot.val();
     console.log('Snapshot data:', users); // Debug log

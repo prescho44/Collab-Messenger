@@ -10,9 +10,9 @@ import {
   CardContent,
   CardActions,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/configs/firebaseConfig';
-import { AppContext } from '@/store/app.context';
 
 const SearchResults = () => {
   const [results, setResults] = useState([]);
@@ -20,61 +20,74 @@ const SearchResults = () => {
   const location = useLocation();
   const queryParam = new URLSearchParams(location.search).get('query');
   const navigate = useNavigate();
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchResults = () => {
       if (!queryParam) return;
 
+      console.log('Fetching results for query:', queryParam); // Debug log
+      setLoading(true);
+      
       const usersRef = ref(db, 'users');
       const teamsRef = ref(db, 'teams');
 
-
       const fetchUsers = new Promise((resolve) => {
-      onValue(usersRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const users = Object.values(snapshot.val()).filter((user)=> 
-            user.username && user.username.toLowerCase().includes(queryParam.toLowerCase())
-          );
-          resolve(users);
-        } else {
-          resolve([]);
-        }
+        onValue(usersRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const users = Object.entries(snapshot.val()).map(([uid, user]) => ({
+              uid,
+              ...user,
+            })).filter((user) => 
+              user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())
+            );
+            console.log('Fetched users:', users); // Debug log
+            resolve(users);
+          } else {
+            resolve([]);
+          }
+        });
       });
-    });
 
-    const fetchTeams = new Promise((resolve) => {
-      onValue(teamsRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const teams = Object.values(snapshot.val()).filter((team) =>
-            team.name && team.name.toLowerCase().includes(queryParam.toLowerCase())
-          );
-          resolve(teams);
-        } else {
-          resolve([]);
-        }
+
+      const fetchTeams = new Promise((resolve) => {
+        onValue(teamsRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const teams = Object.entries(snapshot.val()).map(([id, team]) => ({
+              id, // Add id to team object
+              ...team,
+            })).filter((team) =>
+              team.name && team.name.toLowerCase().includes(queryParam.toLowerCase())
+            );
+            console.log('Fetched teams:', teams); // Debug log
+            resolve(teams);
+          } else {
+            resolve([]);
+          }
+        });
       });
-    });
 
-    Promise.all([fetchUsers, fetchTeams]).then(([users, teams]) => {
-      setResults([...users, ...teams]);
-      setLoading(false);
-    });
-  };
+      Promise.all([fetchUsers, fetchTeams]).then(([users, teams]) => {
+        console.log('Combined results:', [...users, ...teams]); // Debug log
+        setResults([...users, ...teams]);
+        setLoading(false);
+      }).catch((error) => {
+        console.error('Error fetching results:', error); // Debug log
+        setLoading(false);
+      });
+    };
 
-  fetchResults();
-}, [queryParam]);
+    fetchResults();
+  }, [queryParam]);
 
-  
   const handleClick = (id, type) => {
+    console.log(`Navigating to ${type} with id: ${id}`); // Debug log
     if (type === 'user') {
       navigate(`/profile/${id}`);
-    }else if (type === 'team') {
-    navigate(`/profile/${id}`);
+    } else if (type === 'team') {
+      navigate(`/teams/${id}`);
     }
   };
-
-  
- 
 
   if (loading) {
     return (
@@ -110,7 +123,7 @@ const SearchResults = () => {
                     <Typography
                       variant="h5"
                       component="div"
-                      onClick={() => handleClick(result.uid || result.id, result.username ? 'user' : 'team')}
+                      onClick={() => handleClick(result.uid || result.id, result.handle ? 'user' : 'team')}
                       sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
                     >
                       {result.username || result.name}
@@ -118,16 +131,21 @@ const SearchResults = () => {
                     <Typography variant="body2" color="text.secondary" noWrap>
                       {result.email || result.description}
                     </Typography>
-                    </CardContent>
+                  </CardContent>
                   <CardActions>
+                    <Box display="flex" justifyContent="center" width="100%">
                     <Button
-                      onClick={() => handleClick(result.uid || result.id, result.username ? 'user' : 'team')}
-                      color="primary"
+                      onClick={() => handleClick(result.uid || result.id, result.handle ? 'user' : 'team')}
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? 'black' : 'white',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'white' : 'primary.main',
+                      }} 
                       variant="contained"
                       size="small"
                     >
-                      View {result.username ? 'Profile' : 'Team'}
+                      View {result.handle ? 'Profile' : 'Team'}
                     </Button>
+                    </Box>
                   </CardActions>
                 </Card>
               ))}
@@ -140,6 +158,5 @@ const SearchResults = () => {
     </Box>
   );
 };
-
 
 export default SearchResults;

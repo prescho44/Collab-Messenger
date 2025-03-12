@@ -24,13 +24,14 @@ const Profile = ({ userId }) => {
 
   useEffect(() => {
     if (!userId) {
-      console.error('No userId provided');
+      console.error('No uId provided');
       setLoading(false);
       return;
     }
 
     getUserData(userId)
       .then((data) => {
+        console.log('Fetched user data:', data); // Debug log
         setUserData(data);
         setEditedData(data);
       })
