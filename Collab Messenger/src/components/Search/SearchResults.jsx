@@ -10,6 +10,7 @@ import {
   CardContent,
   CardActions,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/configs/firebaseConfig';
 
@@ -19,6 +20,7 @@ const SearchResults = () => {
   const location = useLocation();
   const queryParam = new URLSearchParams(location.search).get('query');
   const navigate = useNavigate();
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchResults = () => {
@@ -32,8 +34,11 @@ const SearchResults = () => {
       const fetchUsers = new Promise((resolve) => {
         onValue(usersRef, (snapshot) => {
           if (snapshot.exists()) {
-            const users = Object.values(snapshot.val()).filter((user) => 
-              user.username && user.username.toLowerCase().includes(queryParam.toLowerCase())
+            const users = Object.entries(snapshot.val()).map(([uid, user]) => ({
+              uid,
+              ...user,
+            })).filter((user) => 
+              user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())
             );
             console.log('Fetched users:', users); // Debug log
             resolve(users);
@@ -43,10 +48,14 @@ const SearchResults = () => {
         });
       });
 
+
       const fetchTeams = new Promise((resolve) => {
         onValue(teamsRef, (snapshot) => {
           if (snapshot.exists()) {
-            const teams = Object.values(snapshot.val()).filter((team) =>
+            const teams = Object.entries(snapshot.val()).map(([id, team]) => ({
+              id, // Add id to team object
+              ...team,
+            })).filter((team) =>
               team.name && team.name.toLowerCase().includes(queryParam.toLowerCase())
             );
             console.log('Fetched teams:', teams); // Debug log
@@ -122,14 +131,19 @@ const SearchResults = () => {
                     </Typography>
                   </CardContent>
                   <CardActions>
+                    <Box display="flex" justifyContent="center" width="100%">
                     <Button
                       onClick={() => handleClick(result.uid || result.id, result.username ? 'user' : 'team')}
-                      color="primary"
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? 'black' : 'white',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'white' : 'primary.main',
+                      }} 
                       variant="contained"
                       size="small"
                     >
                       View {result.handle ? 'Profile' : 'Team'}
                     </Button>
+                    </Box>
                   </CardActions>
                 </Card>
               ))}
