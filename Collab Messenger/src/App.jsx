@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import Login from './features/auth/Login';
 import Register from './features/auth/Register';
 import { auth } from './configs/firebaseConfig';
-import './App.css';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { getUserData } from './services/user.service';
 import Private from './components/Private';
@@ -20,11 +19,9 @@ import Footer from './components/Footer';
 import { Box, CircularProgress } from '@mui/material';
 import VideoCall from './components/VideoCall';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Wrapper component to handle conditional footer rendering
 const AppContent = () => {
   const location = useLocation();
   const [user, loading] = useAuthState(auth);
@@ -80,7 +77,6 @@ const AppContent = () => {
     );
   }
 
-  // Check if current path matches chat view
   const isInChatView = location.pathname.includes('/teams/');
 
   return (
@@ -93,42 +89,23 @@ const AppContent = () => {
         }}
       >
         {appState.user && <Header />}
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            height: 'calc(100vh - 64px)', // Subtract header height
-            overflow: 'hidden',
-          }}
-        >
-          <Routes>
-            <Route element={<Public />}>
-              {/* user is not logged in */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-            </Route>
-            <Route element={<Private />}>
-              {/* user is logged in */}
-              <Route
-                path="/teams/:teamId/channels/:channelId"
-                element={<ChatView />}
-              />
-              <Route path="/profile" element={<Profile userId={user?.uid} />} />
-              <Route path="/profile/:userId" element={<Profile />} />
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/new-chat" element={<MakeNewChat />} />
-              <Route path="/video-call" element={<VideoCall />} />
-            </Route>
+        <Routes>
+          <Route element={<Public />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
+          <Route element={<Private />}>
+            <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
+            <Route path="/profile" element={<Profile userId={user?.uid} />} />
+            <Route path="/profile/:userId" element={<Profile />} />
+            <Route path="/search" element={<SearchResults />} />
+            <Route path="/new-chat" element={<MakeNewChat />} />
+            <Route path="/video-call" element={<VideoCall />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Box>
-        {!isInChatView && (
-          <>
-            <Footer />
-          </>
-        )}
+          </Route>
+        </Routes>
+        {!isInChatView && <Footer />}
         <ToastContainer />
       </Box>
     </AppContext.Provider>
