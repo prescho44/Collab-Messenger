@@ -23,6 +23,7 @@ const MakeNewChat = () => {
   const [error, setError] = useState('');
   const [users, setUsers] = useState([]);
   const [memberError, setMemberError] = useState('');
+  const [existingTeamNames, setExistingTeamNames] = useState([]);
 
   const navigate = useNavigate(); // Use navigate hook
 
@@ -37,7 +38,20 @@ const MakeNewChat = () => {
         setUsers(usersList);
       }
     };
+
+    // Fetch existing team names from Firebase
+    const fetchTeamNames = async () => {
+      const teamsRef = ref(db, 'teams');
+      const snapshot = await get(teamsRef);
+      if (snapshot.exists()) {
+        const teamsData = snapshot.val();
+        const teamNamesList = Object.values(teamsData).map((team) => team.teamName);
+        setExistingTeamNames(teamNamesList);
+      }
+    };
+
     fetchUsers();
+    fetchTeamNames();
   }, []);
 
   const uploadTeam = async () => {
@@ -103,6 +117,10 @@ const MakeNewChat = () => {
 
     if (teamName.length < 3 || teamName.length > 40) {
       return alert('Team name must be between 3 and 40 characters');
+    }
+
+    if (existingTeamNames.includes(teamName)) {
+      return alert('Team name must be unique');
     }
 
     const memberList = members.split(',').map((member) => member.trim());

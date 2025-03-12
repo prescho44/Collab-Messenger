@@ -2,7 +2,7 @@ import {
   Box,
   Container,
   Stack,
-  Typography,
+  
   IconButton,
   Divider,
   Link,
@@ -21,11 +21,12 @@ export default function Footer() {
       sx={{
         bgcolor: "inherit",
         color: "grey.500",
-        py: 3,
+        py: 0,
         position: "relative",
         bottom: 0,
         width: "100%",
-        mt: 4,
+        height: "0%",
+        mt: 1,
       }}
     >
       <Divider sx={{ bgcolor: "grey.700", width: "100%", mb: "25px" }} />
@@ -74,7 +75,6 @@ export default function Footer() {
             <GitHubIcon fontSize="large" />
           </IconButton>
 
-          <Divider sx={{ bgcolor: "grey.700", width: "100%" }} />
           <TeamsAndUsers />
         </Stack>
       </Container>

@@ -2,13 +2,15 @@ import { useEffect, useState, useContext } from "react";
 import { ref, onValue, off, update } from "firebase/database";
 import { db } from "../configs/firebaseConfig";
 import { AppContext } from "../store/app.context";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import {
   Menu,
   MenuItem,
   IconButton,
   Badge,
+  Divider,
+  Button,
+  Typography,
+  Box,
 } from "@mui/material";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
 
@@ -16,10 +18,48 @@ const Notifications = () => {
   const { userData } = useContext(AppContext);
   const [channels, setChannels] = useState([]);
   const [newMessages, setNewMessages] = useState([]);
+  const [teamsMap, setTeamsMap] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
 
-  // Listen for new messages in all channels
+  useEffect(() => {
+    const teamsRef = ref(db, "teams");
+    onValue(teamsRef, (snapshot) => {
+      const teamsData = snapshot.val();
+      if (teamsData) {
+        const teamsList = {};
+        const channelsList = [];
+
+        Object.entries(teamsData).forEach(([teamId, team]) => {
+          teamsList[teamId] = {
+            name: team.teamName || "Unnamed Team",
+            channels: team.channels || {},
+          };
+
+          const members = team.members
+            ? Array.isArray(team.members)
+              ? team.members
+              : Object.keys(team.members)
+            : [];
+
+          if (members.includes(userData?.handle) || team.owner === userData?.handle) {
+            if (team.channels) {
+              Object.entries(team.channels).forEach(([channelId, channelName]) => {
+                channelsList.push({ teamId, channelId, channelName });
+              });
+            }
+          }
+        });
+
+        setTeamsMap(teamsList);
+        setChannels(channelsList);
+      } else {
+        setTeamsMap({});
+        setChannels([]);
+      }
+    });
+  }, [userData?.handle]);
+
   useEffect(() => {
     const listeners = channels.map(({ teamId, channelId }) => {
       const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
@@ -34,29 +74,26 @@ const Notifications = () => {
             })
           );
 
-          const newMessages = messagesList.filter(
+          const unreadMessages = messagesList.filter(
             (message) => !message.readBy || !message.readBy[userData?.uid]
           );
 
-          if (newMessages.length > 0) {
-            console.log("New messages found:", newMessages);
-            setNewMessages(newMessages.map((msg) => ({
-              id: msg.id,
-              sender: msg.senderName,
-              content: msg.content,
-              teamId,
-              channelId,
-              readBy: msg.readBy,
-            })));
-
-            newMessages.forEach((message) => {
-              if (message.sender !== userData?.handle) {
-                toast.info(`New message from ${message.sender}: ${message.content}`);
-              }
-            });
+          if (unreadMessages.length > 0) {
+            setNewMessages((prev) => [
+              ...prev,
+              ...unreadMessages.map((msg) => ({
+                id: msg.id,
+                sender: msg.senderName,
+                content: msg.content,
+                teamId,
+                channelId,
+                readBy: msg.readBy,
+              })),
+            ]);
           }
         }
       });
+
       return { messagesRef, listener };
     });
 
@@ -65,38 +102,22 @@ const Notifications = () => {
         off(messagesRef, listener);
       });
     };
-  }, [channels, userData?.handle]);
+  }, [channels, teamsMap, userData?.handle]);
 
-  // Get all channels user is a part of
-  useEffect(() => {
-    const teamsRef = ref(db, "teams");
-    onValue(teamsRef, (snapshot) => {
-      const teamsData = snapshot.val();
-      if (teamsData) {
-        const channelsList = [];
-        Object.entries(teamsData).forEach(([teamId, team]) => {
-          const members = team.members ? (Array.isArray(team.members) ? team.members : Object.keys(team.members)) : [];
-          if (members.includes(userData?.handle) || team.owner === userData?.handle) {
-            if (team.channels) {
-              Object.keys(team.channels).forEach((channelId) => {
-                channelsList.push({ teamId, channelId });
-              });
-            }
-          }
-        });
-        setChannels(channelsList);
-      } else {
-        setChannels([]);
-      }
-    });
-  }, [userData?.handle]);
-
-  // Open/close dropdown
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
-    // Mark messages as read
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const markMessagesAsRead = () => {
     newMessages.forEach((msg) => {
-      const messageRef = ref(db, `channels/${msg.teamId}/${msg.channelId}/messages/${msg.id}`);
+      const messageRef = ref(
+        db,
+        `channels/${msg.teamId}/${msg.channelId}/messages/${msg.id}`
+      );
       update(messageRef, {
         readBy: {
           ...(msg.readBy || {}),
@@ -104,10 +125,7 @@ const Notifications = () => {
         },
       });
     });
-    setNewMessages([]); // Clears notifications when opened
-  };
-  const handleMenuClose = () => {
-    setAnchorEl(null);
+    setNewMessages([]);
   };
 
   return (
@@ -118,19 +136,40 @@ const Notifications = () => {
         </Badge>
       </IconButton>
 
-      {/* Notification Dropdown Menu */}
       <Menu
         anchorEl={anchorEl}
         open={menuOpen}
         onClose={handleMenuClose}
-        sx={{ mt: 2 }}
       >
         {newMessages.length > 0 ? (
-          newMessages.map((msg) => (
-            <MenuItem key={msg.id} onClick={handleMenuClose}>
-              <strong>{msg.sender}:</strong> {msg.content}
+          <>
+            {newMessages.map((msg) => (
+              <MenuItem key={msg.id} onClick={handleMenuClose}>
+                <Box>
+                  <Typography variant="body2">
+                    <strong>{msg.sender}:</strong> {msg.content}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    From: {teamsMap[msg.teamId]?.name || "Unknown Team"} -{" "}
+                    {teamsMap[msg.teamId]?.channels[msg.channelId] || "Unknown Channel"}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+
+            <Divider />
+
+            <MenuItem>
+              <Button
+                fullWidth
+                variant="contained"
+                color="error"
+                onClick={markMessagesAsRead}
+              >
+                Clear
+              </Button>
             </MenuItem>
-          ))
+          </>
         ) : (
           <MenuItem onClick={handleMenuClose}>No new messages</MenuItem>
         )}

@@ -286,9 +286,18 @@ const ChatView = () => {
           ref={mainChatRef}
           sx={{
             flex: 1,
-            overflow: 'auto',
-            p: 2,
-            bgcolor: 'background.default',
+            overflowY: 'auto', // Enable vertical scrolling
+            paddingRight: 1, // Add some padding for the scrollbar
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'background.paper',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'primary.main',
+              borderRadius: '4px',
+            },
           }}
         >
           <Stack spacing={2}>

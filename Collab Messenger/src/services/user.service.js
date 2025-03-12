@@ -1,9 +1,7 @@
 import { get, set, ref, query, equalTo, orderByChild } from 'firebase/database';
 import { db } from '../configs/firebaseConfig';
 
-
 export const createUserHandle = async (handle, uid, email, photo, phoneNumber) => {
-
   const user = {
     handle,
     uid,
@@ -36,10 +34,31 @@ export const getUserData = async (uid) => {
 };
 
 export const getUserByHandle = async (handle) => {
-
   const snapshot = await get(ref(db, `users/${handle}`));
-  if(snapshot.exists()) {
+  if (snapshot.exists()) {
     return snapshot.val();
   }
   return null;
+};
+
+export const updateUserData = async (uid, data) => {
+  if (!uid) {
+    console.error('UID is required');
+    throw new Error('UID is required');
+  }
+
+  const snapshot = await get(query(ref(db, 'users'), orderByChild('uid'), equalTo(uid)));
+  if (snapshot.exists()) {
+    const users = snapshot.val();
+    const userHandle = Object.keys(users)[0];
+    await set(ref(db, `users/${userHandle}`), data);
+  } else {
+    console.error('No user data found for UID:', uid);
+    throw new Error('No user data found for UID');
+  }
+};
+
+export const checkEmailExists = async (email) => {
+  const snapshot = await get(query(ref(db, 'users'), orderByChild('email'), equalTo(email)));
+  return snapshot.exists();
 };

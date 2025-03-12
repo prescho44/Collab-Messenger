@@ -7,6 +7,7 @@ import {
   Typography,
   Box,
   IconButton,
+  Icon,
 } from '@mui/material';
 import { AppContext } from '../../store/app.context';
 import { ThemeContext } from '../../store/theme.context';
@@ -77,9 +78,15 @@ export default function Header() {
             </>
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {/* ✅ Notification Dropdown */}
+              <IconButton sx={{
+                  bgcolor: 'inherit',
+                  borderRadius: 2,
+                  padding: 1,
+                  '&:hover': { bgcolor: 'inherit' },
+                  mr: 1,
+                }}>
               <Notifications />
-
+              </IconButton>
               <IconButton
                 onClick={toggleTheme}
                 color="inherit"
@@ -87,7 +94,7 @@ export default function Header() {
                   bgcolor: 'inherit',
                   borderRadius: 2,
                   padding: 1,
-                  '&:hover': { bgcolor: 'primary.light' },
+                  '&:hover': { bgcolor: 'inherit' },
                   mr: 2,
                 }}
               >
@@ -100,7 +107,7 @@ export default function Header() {
                   bgcolor: 'inherit',
                   borderRadius: 2,
                   padding: 1,
-                  '&:hover': { bgcolor: 'primary.light' },
+                  '&:hover': { bgcolor: 'inherit' },
                   mr: 2,
                 }}
               >

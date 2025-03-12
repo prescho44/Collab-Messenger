@@ -81,7 +81,7 @@ const AppContent = () => {
   }
 
   // Check if current path matches chat view
-  const isInChatView = location.pathname.includes('/teams/');
+  const isInChatView = location.pathname.includes('/teams/') ;
 
   return (
     <AppContext.Provider value={{ ...appState, setAppState }}>

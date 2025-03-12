@@ -66,7 +66,7 @@ export default function Chats() {
         padding: 2,
         height: 'calc(100vh - 64px)', // Subtract header height
         overflow: 'auto',
-        marginBottom: 32
+        marginBottom: 3
       }}
     >
       {/* Header section remains fixed */}
