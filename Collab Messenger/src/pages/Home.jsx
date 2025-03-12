@@ -41,6 +41,7 @@ const Home = () => {
     >
       <Box
         sx={{
+
           display: "flex",
           flexDirection: "column",
           alignItems: "center",

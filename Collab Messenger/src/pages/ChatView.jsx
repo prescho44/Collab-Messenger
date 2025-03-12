@@ -34,6 +34,7 @@ const ChatView = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
+  const mainChatRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
@@ -79,7 +80,9 @@ const ChatView = () => {
   }, [teamId, channelId, user.uid]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (mainChatRef.current) {
+      mainChatRef.current.scrollTop = mainChatRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSendMessage = async (e) => {
@@ -234,7 +237,7 @@ const ChatView = () => {
   }
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex' }}>
+    <Box sx={{ height: '90vh', display: 'flex' }}>
       {/* Sidebar - Chats Component */}
       <Box
         sx={{
@@ -242,6 +245,9 @@ const ChatView = () => {
           flexDirection: 'column',
           width: '26.75%',
           ml: 3,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          overflow:"height",
         }}
       >
         <Chats />
@@ -268,6 +274,7 @@ const ChatView = () => {
         </Box>
 
         <Box
+          ref={mainChatRef}
           sx={{
             flex: 1,
             overflow: 'auto',
