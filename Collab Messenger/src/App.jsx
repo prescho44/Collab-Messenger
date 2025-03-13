@@ -43,6 +43,7 @@ const AppContent = () => {
 
   useEffect(() => {
     if (user && !appState.userData) {
+      console.log('userId:', user.uid);
       getUserData(user.uid)
         .then((data) => {
           setAppState((prev) => ({
@@ -98,8 +99,9 @@ const AppContent = () => {
           <Route element={<Private />}>
             <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
-            <Route path="/profile/:userId" element={<Profile />} />
+            <Route path="/profile/:uid" element={<Profile userId={user?.uid} />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/chat/:chatId" element={<ChatView />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
             <Route path="/video-call" element={<VideoCall />} />
             <Route path="*" element={<NotFound />} />

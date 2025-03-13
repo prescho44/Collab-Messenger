@@ -17,7 +17,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import Notifications from '../Notifications'; // ✅ Importing Notification Component
+import Notifications from '../Notifications'; 
 
 export default function Header() {
   const { user, setAppState } = useContext(AppContext);
@@ -78,13 +78,6 @@ export default function Header() {
             </>
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton sx={{
-                  bgcolor: 'inherit',
-                  borderRadius: 2,
-                  padding: 1,
-                  '&:hover': { bgcolor: 'inherit' },
-                  mr: 1,
-                }}>
               <Notifications />
               </IconButton>
               <IconButton
@@ -101,7 +94,7 @@ export default function Header() {
                 {themeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
               </IconButton>
               <IconButton
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate(`/profile/${user.uid}`)}
                 color="inherit"
                 sx={{
                   bgcolor: 'inherit',
