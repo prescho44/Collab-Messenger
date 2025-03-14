@@ -22,6 +22,7 @@ import VideoCall from './components/VideoCall';
 import { ToastContainer } from 'react-toastify';
 import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
+import Friends from './features/auth/Friends';
 
 const AppContent = () => {
   const location = useLocation();
@@ -102,6 +103,7 @@ const AppContent = () => {
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
             <Route path="/profile/:uid" element={<Profile userId={user?.uid} />} />
             <Route path="/edit-profile" element={<EditProfile />} />
+            <Route path="/friends" element={<Friends />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/chat/:chatId" element={<ChatView />} />
             <Route path="/new-chat" element={<MakeNewChat />} />

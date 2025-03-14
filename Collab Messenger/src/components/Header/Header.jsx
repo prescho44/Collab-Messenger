@@ -7,7 +7,6 @@ import {
   Typography,
   Box,
   IconButton,
-  Icon,
 } from '@mui/material';
 import { AppContext } from '../../store/app.context';
 import { ThemeContext } from '../../store/theme.context';
@@ -18,6 +17,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import Notifications from '../Notifications'; 
+import FriendsIcon from '@mui/icons-material/Group';
 
 export default function Header() {
   const { user, setAppState } = useContext(AppContext);
@@ -37,6 +37,11 @@ export default function Header() {
         console.error(error.message);
       });
   };
+
+  const handleFriendsClick = () => {
+    navigate('/friends');
+  };
+
 
   return (
     <AppBar position="sticky" color="primary" elevation={4}>
@@ -106,6 +111,19 @@ export default function Header() {
                 }}
               >
                 <AccountBoxIcon sx={{ fontSize: 30 }} />
+              </IconButton>
+              <IconButton
+                onClick={handleFriendsClick}
+                color="inherit"
+                sx={{
+                  bgcolor: 'inherit',
+                  borderRadius: 2,
+                  padding: 1,
+                  '&:hover': { bgcolor: 'inherit' },
+                  mr: 2,
+                }}
+              >
+                <FriendsIcon sx={{ fontSize: 30 }} />
               </IconButton>
               <IconButton
                 onClick={logout}

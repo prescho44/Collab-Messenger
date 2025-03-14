@@ -4,6 +4,8 @@ import { getUserData } from '../../services/user.service';
 import { createDirectChat } from '../../components/DirectChat/CreateDirectChat';
 import { Avatar, Box, Typography, CircularProgress, Button, Paper } from '@mui/material';
 import { AppContext } from '../../store/app.context';
+import { db } from '../../configs/firebaseConfig';
+import { ref, update } from 'firebase/database';
 
 
 const Profile = ({userId}) => {
@@ -57,6 +59,15 @@ const Profile = ({userId}) => {
     console.log('Invite to Team clicked');
   };
 
+  const handleAddFriend = async () => {
+    const userRef = ref(db, `users/${currentUserData.uid}/friends/${userData.uid}`);
+    await update(userRef, {
+      uid: userData.uid,
+      username: userData.username,
+      email: userData.email,
+    });
+  };
+
   const handleEditProfile = () => {
     navigate('/edit-profile');
   };
@@ -105,6 +116,9 @@ const Profile = ({userId}) => {
         </Button>
         <Button variant="contained" color="primary" onClick={handleInviteToTeam}>
           Invite to Team
+        </Button>
+        <Button variant="contained" color="primary" onClick={handleAddFriend}>
+          Add Friend
         </Button>
       </Box>
       )}
