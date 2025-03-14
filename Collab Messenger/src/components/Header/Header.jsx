@@ -79,7 +79,7 @@ export default function Header() {
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Notifications />
-              <IconButton
+              <IconButton>
                 onClick={toggleTheme}
                 color="inherit"
                 sx={{
@@ -89,7 +89,6 @@ export default function Header() {
                   '&:hover': { bgcolor: 'inherit' },
                   mr: 2,
                 }}
-              >
                 {themeMode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
               </IconButton>
               <IconButton

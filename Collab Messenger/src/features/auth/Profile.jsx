@@ -23,7 +23,7 @@ const Profile = ({userId}) => {
     console.log('uid:', uid);
 
     if (!uid) {
-      console.error('No uId provided');
+      console.error('No uid provided');
       setLoading(false);
       return;
     }
@@ -97,7 +97,7 @@ const Profile = ({userId}) => {
         </Button>
       </Box>
       )}
-    </Paper>
+   </Paper>
   );
 };
 
