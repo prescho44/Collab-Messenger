@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getUserData } from '../../services/user.service';
 import { createDirectChat } from '../../components/DirectChat/CreateDirectChat';
-import { Avatar, Box, Typography, CircularProgress, Button } from '@mui/material';
+import { Avatar, Box, Typography, CircularProgress, Button, Paper } from '@mui/material';
 import { AppContext } from '../../store/app.context';
 
 
@@ -68,6 +68,7 @@ const Profile = ({userId}) => {
   const isOwnProfile = uid === userId;
 
   return (
+    
     <Paper elevation={4} sx={{ maxWidth: 450, mx: 'auto', p: 4, mt: 5, textAlign: 'center', borderRadius: 3 }}>
       <Avatar
         alt={userData.handle}
@@ -96,7 +97,7 @@ const Profile = ({userId}) => {
         </Button>
       </Box>
       )}
-    </Box>
+    </Paper>
   );
 };
 

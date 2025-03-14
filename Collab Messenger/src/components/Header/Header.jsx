@@ -79,7 +79,6 @@ export default function Header() {
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Notifications />
-              </IconButton>
               <IconButton
                 onClick={toggleTheme}
                 color="inherit"
