@@ -8,7 +8,6 @@ import {
   IconButton,
   Badge,
   Divider,
-  Button,
   Typography,
   Box,
 } from "@mui/material";
@@ -129,43 +128,41 @@ const Notifications = () => {
   };
 
   return (
-      <><IconButton color="inherit" onClick={handleMenuOpen}>
-      <Badge badgeContent={newMessages.length} color="error">
-        <CircleNotificationsIcon sx={{ fontSize: 30 }} />
-      </Badge>
-    </IconButton><Menu
-      anchorEl={anchorEl}
-      open={menuOpen}
-      onClose={handleMenuClose}
-    >
+    <>
+      <IconButton color="inherit" onClick={handleMenuOpen}>
+        <Badge badgeContent={newMessages.length} color="error">
+          <CircleNotificationsIcon sx={{ fontSize: 30 }} />
+        </Badge>
+      </IconButton>
+      <Menu
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={handleMenuClose}
+      >
         {newMessages.length > 0 ? (
-          [
-              ...newMessages.map((msg) => (
-                <MenuItem key={msg.id} onClick={handleMenuClose}>
-                  <Box>
-                    <Typography variant="body2">
-                      <strong>{msg.sender}:</strong> {msg.content}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      From: {teamsMap[msg.teamId]?.name || "Unknown Team"} -{" "}
-                      {teamsMap[msg.teamId]?.channels[msg.channelId] || "Unknown Channel"}
-                    </Typography>
-                  </Box>
-                </MenuItem>
-              )),
-            < Divider key="divider"/>,
-
-            <MenuItem key="clear">
-              <Button
-                fullWidth
-                variant="contained"
-                color="error"
-                onClick={markMessagesAsRead}
-              >
-                Clear
-              </Button>
+          <>
+            {newMessages.map((msg) => (
+              <MenuItem key={msg.id} onClick={handleMenuClose}>
+                <Box>
+                  <Typography variant="body2">
+                    <strong>{msg.sender}:</strong> {msg.content}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    From: {teamsMap[msg.teamId]?.name || "Unknown Team"} -{" "}
+                    {teamsMap[msg.teamId]?.channels[msg.channelId] || "Unknown Channel"}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+            <Divider key="divider" />
+            <MenuItem key="clear" onClick={markMessagesAsRead}>
+              <Box sx={{ width: '100%', textAlign: 'center' }}>
+                <Typography variant="button" color="error">
+                  Clear
+                </Typography>
+              </Box>
             </MenuItem>
-          ]
+          </>
         ) : (
           <MenuItem onClick={handleMenuClose}>No new messages</MenuItem>
         )}
