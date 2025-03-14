@@ -102,7 +102,7 @@ const Notifications = () => {
         off(messagesRef, listener);
       });
     };
-  }, [channels, teamsMap, userData?.handle]);
+  }, [channels, teamsMap, userData?.handle, userData?.uid]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -129,37 +129,33 @@ const Notifications = () => {
   };
 
   return (
-    <>
-      <IconButton color="inherit" onClick={handleMenuOpen}>
-        <Badge badgeContent={newMessages.length} color="error">
-          <CircleNotificationsIcon sx={{ fontSize: 30 }} />
-        </Badge>
-      </IconButton>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleMenuClose}
-      >
+      <><IconButton color="inherit" onClick={handleMenuOpen}>
+      <Badge badgeContent={newMessages.length} color="error">
+        <CircleNotificationsIcon sx={{ fontSize: 30 }} />
+      </Badge>
+    </IconButton><Menu
+      anchorEl={anchorEl}
+      open={menuOpen}
+      onClose={handleMenuClose}
+    >
         {newMessages.length > 0 ? (
-          <>
-            {newMessages.map((msg) => (
-              <MenuItem key={msg.id} onClick={handleMenuClose}>
-                <Box>
-                  <Typography variant="body2">
-                    <strong>{msg.sender}:</strong> {msg.content}
-                  </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    From: {teamsMap[msg.teamId]?.name || "Unknown Team"} -{" "}
-                    {teamsMap[msg.teamId]?.channels[msg.channelId] || "Unknown Channel"}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            ))}
+          [
+              ...newMessages.map((msg) => (
+                <MenuItem key={msg.id} onClick={handleMenuClose}>
+                  <Box>
+                    <Typography variant="body2">
+                      <strong>{msg.sender}:</strong> {msg.content}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      From: {teamsMap[msg.teamId]?.name || "Unknown Team"} -{" "}
+                      {teamsMap[msg.teamId]?.channels[msg.channelId] || "Unknown Channel"}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              )),
+            < Divider key="divider"/>,
 
-            <Divider />
-
-            <MenuItem>
+            <MenuItem key="clear">
               <Button
                 fullWidth
                 variant="contained"
@@ -169,7 +165,7 @@ const Notifications = () => {
                 Clear
               </Button>
             </MenuItem>
-          </>
+          ]
         ) : (
           <MenuItem onClick={handleMenuClose}>No new messages</MenuItem>
         )}
