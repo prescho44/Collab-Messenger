@@ -57,6 +57,11 @@ const Profile = ({userId}) => {
     console.log('Invite to Team clicked');
   };
 
+  const handleEditProfile = () => {
+    navigate('/edit-profile');
+  };
+
+
   if (loading) {
     return <CircularProgress sx={{ display: 'block', margin: '20px auto' }} />;
   }
@@ -87,7 +92,13 @@ const Profile = ({userId}) => {
       <Typography variant="body2" mt={1}>
         {userData.phoneNumber}
       </Typography>
-      {!isOwnProfile && (
+      {isOwnProfile ? (
+      <Box sx={{ mt: 2 }}>
+        <Button variant="contained" color="primary" onClick={handleEditProfile}>
+            Edit Profile
+          </Button>
+        </Box>
+      ) : (
       <Box sx={{ mt: 2 }}>
         <Button variant="contained" color="primary" sx={{ mr: 2}}  onClick={handleSendMessage}>
           Send Message

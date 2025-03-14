@@ -12,6 +12,7 @@ import Public from './components/Public';
 import NotFound from './components/NotFound';
 import Home from './pages/Home';
 import Profile from './features/auth/Profile';
+import EditProfile from './features/auth/EditProfile';
 import Header from './components/Header/Header';
 import MakeNewChat from './pages/MakeNewChat';
 import ChatView from './pages/ChatView';
@@ -100,6 +101,7 @@ const AppContent = () => {
             <Route path="/teams/:teamId/channels/:channelId" element={<ChatView />} />
             <Route path="/profile" element={<Profile userId={user?.uid} />} />
             <Route path="/profile/:uid" element={<Profile userId={user?.uid} />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/chat/:chatId" element={<ChatView />} />
             <Route path="/new-chat" element={<MakeNewChat />} />
