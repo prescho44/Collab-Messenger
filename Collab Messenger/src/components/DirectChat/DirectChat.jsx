@@ -15,6 +15,7 @@ const DirectChat = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    console.log('Setting up messages listener for chatId:', chatId);
     const messagesRef = ref(db, `messages/${chatId}`);
     const listener = onValue(messagesRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -26,8 +27,10 @@ const DirectChat = () => {
             timestamp: new Date(message.timestamp),
           })
         );
+        console.log('Fetched messages:', messagesList);
         setMessages(messagesList);
       }else{
+        console.log('No messages found');
         setMessages([]);
       }
       setLoading(false);
@@ -37,6 +40,7 @@ const DirectChat = () => {
     });
 
     return () => {
+      console.log('Cleaning up messages listener for chatId:', chatId);
       off(messagesRef, listener);
     };
   }, [chatId]);
@@ -46,9 +50,10 @@ useEffect(() => {
 }, [chatId]);
 
 
-  const handleSendMessage = async () => {
-    if (newMessage.trim() === '') return;
+const handleSendMessage = async () => {
+  if (newMessage.trim() === '') return;
 
+  try {
     const messageRef = push(ref(db, `messages/${chatId}`));
     const message = {
       content: newMessage,
@@ -58,9 +63,10 @@ useEffect(() => {
 
     await update(messageRef, message);
     setNewMessage('');
-  };
-
-  
+  } catch (error) {
+    console.error('Error sending message:', error.message);
+  }
+};
 
   return (
     <Paper elevation={4} sx={{ maxWidth: 600, mx: 'auto', p: 4, mt: 5, borderRadius: 3 }}>

@@ -14,10 +14,8 @@ const Profile = ({userId}) => {
   const { userData: currentUserData } = useContext(AppContext);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
   const [editedData, setEditedData] = useState({});
-  const [emailError, setEmailError] = useState('');
-  const [avatar, setAvatar] = useState(null);
+  const [sendMessageLoading, setSendMessageLoading] = useState(false);
 
   useEffect(() => {
 
@@ -45,12 +43,16 @@ const Profile = ({userId}) => {
   }, [uid]);
 
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    setSendMessageLoading(true);
     try {
       const chatId = await createDirectChat(currentUserData, userData);
       navigate(`/chat/${chatId}`);
     } catch (error) {
       console.error('Error creating direct chat:', error.message);
+    } finally {
+      setSendMessageLoading(false);
     }
   };
 
@@ -111,8 +113,8 @@ const Profile = ({userId}) => {
         </Box>
       ) : (
       <Box sx={{ mt: 2 }}>
-        <Button variant="contained" color="primary" sx={{ mr: 2}}  onClick={handleSendMessage}>
-          Send Message
+        <Button variant="contained" color="primary" sx={{ mr: 2}} onClick={handleSendMessage} disabled={sendMessageLoading}>
+          {sendMessageLoading ? <CircularProgress size={24} /> : 'Send Message'}
         </Button>
         <Button variant="contained" color="primary" onClick={handleInviteToTeam}>
           Invite to Team

@@ -7,7 +7,8 @@ const Search = () => {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
 
-  const handleSearch = () => {
+  const handleSearch = (e) => {
+    if (e) e.preventDefault();
     if (query.trim()) {
       navigate(`/search?query=${query}`);
     }
@@ -15,6 +16,7 @@ const Search = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       handleSearch();
     }
   };
@@ -23,6 +25,7 @@ const Search = () => {
     <Paper
       component="form"
       sx={{ display: 'flex', alignItems: 'center', width: 400, padding: '2px 4px' }}
+      onSubmit={handleSearch}
     >
       <InputBase
         sx={{ ml: 1, flex: 1 }}

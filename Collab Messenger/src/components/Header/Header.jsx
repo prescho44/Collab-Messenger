@@ -52,7 +52,7 @@ export default function Header() {
           to="/"
           sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}
         >
-          Discord Clone
+          Collab
         </Typography>
 
         <Search />
