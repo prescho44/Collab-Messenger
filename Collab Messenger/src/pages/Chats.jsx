@@ -37,7 +37,7 @@ export default function Chats() {
             id,
             teamName: team.teamName || 'Unnamed Team',
             owner: team.owner || 'Unknown Owner',
-            channels: team.channels ? Object.keys(team.channels) : [],
+            channels: team.channels ? Object.values(team.channels) : [],
             members: team.members ? Object.values(team.members) : [],
           }))
           .filter(
@@ -83,9 +83,17 @@ export default function Chats() {
           variant="contained"
           color="primary"
           sx={{ maxWidth: 200, mb: 2 }}
-          onClick={() => navigate('/new-chat')}
+          onClick={() => navigate('/new-team')}
         >
           New Chat
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ maxWidth: 200, mb: 2, ml: 2 }}
+          onClick={() => navigate('/new-channel')}
+        >
+          New Channel
         </Button>
       </Box>
 

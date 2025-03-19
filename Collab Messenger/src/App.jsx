@@ -14,7 +14,7 @@ import Home from './pages/Home';
 import Profile from './features/auth/Profile';
 import EditProfile from './features/auth/EditProfile';
 import Header from './components/Header/Header';
-import MakeNewChat from './pages/MakeNewChat';
+import MakeNewTeam from './pages/MakeNewTeam';
 import ChatView from './pages/ChatView';
 import Footer from './components/Footer';
 import { Box, CircularProgress } from '@mui/material';
@@ -23,6 +23,7 @@ import { ToastContainer } from 'react-toastify';
 import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
 import Friends from './features/auth/Friends';
+import MakeNewChannel from './pages/MakeNewChannel';
 
 const AppContent = () => {
   const location = useLocation();
@@ -106,7 +107,8 @@ const AppContent = () => {
             <Route path="/friends" element={<Friends />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/chat/:chatId" element={<ChatView />} />
-            <Route path="/new-chat" element={<MakeNewChat />} />
+            <Route path="/new-team" element={<MakeNewTeam />} />
+            <Route path="/new-channel" element={<MakeNewChannel />} />
             <Route path="/video-call" element={<VideoCall />} />
             <Route path="*" element={<NotFound />} />
           </Route>

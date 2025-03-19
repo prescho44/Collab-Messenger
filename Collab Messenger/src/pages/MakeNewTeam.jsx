@@ -14,7 +14,7 @@ import {
   Autocomplete,
 } from '@mui/material';
 
-const MakeNewChat = () => {
+const MakeNewTeam = () => {
   const { user, userData } = useContext(AppContext);
 
   const [teamName, setTeamName] = useState('');
@@ -313,4 +313,4 @@ const MakeNewChat = () => {
   );
 };
 
-export default MakeNewChat;
+export default MakeNewTeam;

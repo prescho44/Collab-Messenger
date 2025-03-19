@@ -45,7 +45,7 @@ export default function Footer() {
 
             {user ? (
               <>
-                <Link href="/new-chat" color="inherit" underline="hover">
+                <Link href="/new-team" color="inherit" underline="hover">
                   New Chat
                 </Link>
                 <Link href="/profile" color="inherit" underline="hover">
