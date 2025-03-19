@@ -12,6 +12,7 @@ import {
   Box,
 } from "@mui/material";
 import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Notifications = () => {
   const { userData } = useContext(AppContext);
@@ -20,6 +21,7 @@ const Notifications = () => {
   const [teamsMap, setTeamsMap] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
+  const navigate = useNavigate(); // Initialize the navigate function
 
   useEffect(() => {
     const teamsRef = ref(db, "teams");
@@ -127,22 +129,38 @@ const Notifications = () => {
     setNewMessages([]);
   };
 
+  const handleMessageClick = (msg) => {
+    // Remove the clicked message from the notifications list
+    setNewMessages((prevMessages) =>
+      prevMessages.filter((message) => message.id !== msg.id)
+    );
+
+    // Navigate to the specific chat based on teamId and channelId
+    navigate(`/teams/${msg.teamId}/channels/${msg.channelId}`);
+  };
+
   return (
     <>
+      {/* Always show the notification icon, but conditionally render the badge */}
       <IconButton color="inherit" onClick={handleMenuOpen}>
-        <Badge badgeContent={newMessages.length} color="error">
+        {userData?.status === "Online" ? (
+          <Badge badgeContent={newMessages.length} color="error">
+            <CircleNotificationsIcon sx={{ fontSize: 30 }} />
+          </Badge>
+        ) : (
           <CircleNotificationsIcon sx={{ fontSize: 30 }} />
-        </Badge>
+        )}
       </IconButton>
+
       <Menu
         anchorEl={anchorEl}
         open={menuOpen}
         onClose={handleMenuClose}
       >
         {newMessages.length > 0 ? (
-          <>
-            {newMessages.map((msg) => (
-              <MenuItem key={msg.id} onClick={handleMenuClose}>
+          [
+            ...newMessages.map((msg) => (
+              <MenuItem key={msg.id} onClick={() => handleMessageClick(msg)}>
                 <Box>
                   <Typography variant="body2">
                     <strong>{msg.sender}:</strong> {msg.content}
@@ -153,8 +171,8 @@ const Notifications = () => {
                   </Typography>
                 </Box>
               </MenuItem>
-            ))}
-            <Divider key="divider" />
+            )),
+            <Divider key="divider" />,
             <MenuItem key="clear" onClick={markMessagesAsRead}>
               <Box sx={{ width: '100%', textAlign: 'center' }}>
                 <Typography variant="button" color="error">
@@ -162,7 +180,7 @@ const Notifications = () => {
                 </Typography>
               </Box>
             </MenuItem>
-          </>
+          ]
         ) : (
           <MenuItem onClick={handleMenuClose}>No new messages</MenuItem>
         )}

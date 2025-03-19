@@ -9,6 +9,7 @@ export const createUserHandle = async (handle, uid, email, photo, phoneNumber) =
     photo,
     phoneNumber,
     createdOn: new Date().toString(),
+    status: 'Online',
   };
 
   await set(ref(db, `users/${handle}`), user);
@@ -20,12 +21,10 @@ export const getUserData = async (uid) => {
     throw new Error('UID is required');
   }
 
-  console.log('Querying user data for UID:', uid); // Debug log
   const userQuery = query(ref(db, 'users'), orderByChild('uid'), equalTo(uid));
   const snapshot = await get(userQuery);
   if (snapshot.exists()) {
     const users = snapshot.val();
-    console.log('Snapshot data:', users); // Debug log
     const userHandle = Object.keys(users)[0];
     return users[userHandle];
   } else {
@@ -61,5 +60,10 @@ export const updateUserData = async (uid, data) => {
 
 export const checkEmailExists = async (email) => {
   const snapshot = await get(query(ref(db, 'users'), orderByChild('email'), equalTo(email)));
+  return snapshot.exists();
+};
+
+export const checkHandleExists = async (handle) => {
+  const snapshot = await get(query(ref(db, 'users'), orderByChild('handle'), equalTo(handle)));
   return snapshot.exists();
 };
