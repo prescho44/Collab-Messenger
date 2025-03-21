@@ -1,7 +1,15 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../configs/firebaseConfig';
-import { ref, onValue, push, set, update, remove } from 'firebase/database';
+import {
+  ref,
+  onValue,
+  push,
+  set,
+  update,
+  remove,
+  get,
+} from 'firebase/database';
 import { AppContext } from '../store/app.context';
 import {
   Box,
@@ -17,6 +25,7 @@ import {
   MenuItem,
   Popover,
   Badge,
+  Button,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -25,6 +34,7 @@ import Chats from './Chats';
 import Picker from 'emoji-picker-react';
 import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
 
 const ChatView = () => {
@@ -62,7 +72,10 @@ const ChatView = () => {
         // Mark messages as read
         messagesList.forEach((message) => {
           if (!message.readBy || !message.readBy[user.uid]) {
-            const messageRef = ref(db, `channels/${teamId}/${channelId}/messages/${message.id}`);
+            const messageRef = ref(
+              db,
+              `channels/${teamId}/${channelId}/messages/${message.id}`
+            );
             update(messageRef, {
               readBy: {
                 ...(message.readBy || {}),
@@ -111,6 +124,86 @@ const ChatView = () => {
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
+    }
+  };
+
+  const handleLeaveTeam = async () => {
+    const userConfirmed = window.confirm(
+      'Are you sure you want to leave this team? This will remove you from the team and all its channels.'
+    );
+
+    if (!userConfirmed) return;
+
+    try {
+      // Remove the user from the team's members
+      const teamMembersRef = ref(db, `teams/${teamId}/members`);
+      const snapshot = await get(teamMembersRef);
+
+      if (snapshot.exists()) {
+        const members = snapshot.val();
+        if (Array.isArray(members)) {
+          const updatedMembers = members.filter(
+            (member) => member !== userData?.handle
+          );
+          await set(teamMembersRef, updatedMembers);
+        }
+      }
+
+      // Remove the user from all channels in the team
+      const channelsRef = ref(db, `channels/${teamId}`);
+      const channelsSnapshot = await get(channelsRef);
+
+      if (channelsSnapshot.exists()) {
+        const channels = channelsSnapshot.val();
+        for (const channelId in channels) {
+          const participantsRef = ref(
+            db,
+            `channels/${teamId}/${channelId}/participants`
+          );
+          const participantsSnapshot = await get(participantsRef);
+
+          if (participantsSnapshot.exists()) {
+            const participants = participantsSnapshot.val();
+            const updatedParticipants = participants.filter(
+              (participant) => participant !== userData?.handle
+            );
+            await set(participantsRef, updatedParticipants);
+          }
+        }
+      }
+
+      // Navigate back to the main page
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving team:', error);
+    }
+  };
+
+  const handleLeaveChannel = async () => {
+    const userConfirmed = window.confirm(
+      'Are you sure you want to leave this channel?'
+    );
+
+    if (!userConfirmed) return;
+
+    try {
+      const participantsRef = ref(
+        db,
+        `channels/${teamId}/${channelId}/participants`
+      );
+      const snapshot = await get(participantsRef);
+
+      if (snapshot.exists()) {
+        const participants = participants.val();
+        const updatedParticipants = participants.filter(
+          (participant) => participant !== userData?.handle
+        );
+        await set(participantsRef, updatedParticipants);
+      }
+
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving channel:', error);
     }
   };
 
@@ -181,7 +274,6 @@ const ChatView = () => {
       );
 
       if (existingReaction && existingReaction[0] === emoji) {
-        // Remove reaction if user already reacted with this emoji
         const { [emoji]: currentEmoji, ...remainingReactions } = reactions;
         const { [user.uid]: _, ...remainingUsers } = currentEmoji;
 
@@ -194,9 +286,7 @@ const ChatView = () => {
           },
         });
       } else {
-        // Add new reaction
         if (existingReaction) {
-          // Remove previous reaction
           const [prevEmoji] = existingReaction;
           delete reactions[prevEmoji][user.uid];
         }
@@ -245,8 +335,13 @@ const ChatView = () => {
   }
 
   return (
-    <Box sx={{ height: 'calc(100vh - 64px)', // Subtract header height
-      overflow: 'hidden', display: 'flex' }}>
+    <Box
+      sx={{
+        height: 'calc(100vh - 64px)', // Subtract header height
+        overflow: 'hidden',
+        display: 'flex',
+      }}
+    >
       {/* Sidebar - Chats Component */}
       <Box
         sx={{
@@ -256,7 +351,7 @@ const ChatView = () => {
           ml: 3,
           overflowY: 'auto',
           overflowX: 'hidden',
-          overflow:"height",
+          overflow: 'height',
         }}
       >
         <Chats />
@@ -272,14 +367,31 @@ const ChatView = () => {
             borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
           <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
             <Typography variant="h6">{channelId}</Typography>
           </Box>
-          <IconButton color="primary" onClick={() => navigate('/video-call')}>
+          <IconButton
+            sx={{ marginInline: 1 }}
+            color="primary"
+            onClick={() => navigate('/video-call')}
+          >
             <VideoCallIcon />
           </IconButton>
+          <Stack direction="row" spacing={2}>
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={handleLeaveChannel}
+            >
+              Leave Channel
+            </Button>
+            <Button color="error" variant="contained" onClick={handleLeaveTeam}>
+              Leave Team
+            </Button>
+          </Stack>
         </Box>
 
         <Box

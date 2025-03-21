@@ -28,30 +28,70 @@ export default function Chats() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const postsRef = ref(db, 'teams');
-    onValue(postsRef, (snapshot) => {
-      const postsData = snapshot.val();
-      if (postsData) {
-        const teamsList = Object.entries(postsData)
-          .map(([id, team]) => ({
-            id,
-            teamName: team.teamName || 'Unnamed Team',
-            owner: team.owner || 'Unknown Owner',
-            channels: team.channels ? Object.values(team.channels) : [],
-            members: team.members ? Object.values(team.members) : [],
-          }))
-          .filter(
-            (team) =>
-              team.members.includes(userData?.handle) ||
-              team.owner === userData?.handle
+    const fetchTeams = async () => {
+      const teamsRef = ref(db, 'teams');
+      onValue(teamsRef, async (snapshot) => {
+        const teamsData = snapshot.val();
+        if (teamsData) {
+          const teamPromises = Object.entries(teamsData).map(
+            async ([teamId, team]) => {
+              const members = team.members || [];
+              const owner = team.owner || '';
+
+              // Filter channels the user belongs to
+              const channelPromises = Object.entries(team.channels || {}).map(
+                async ([channelId, channelName]) => {
+                  const channelParticipantsRef = ref(
+                    db,
+                    `channels/${teamId}/${channelId}/participants`
+                  );
+                  const participantsSnapshot = await new Promise((resolve) =>
+                    onValue(
+                      channelParticipantsRef,
+                      (snap) => resolve(snap.val()),
+                      { onlyOnce: true }
+                    )
+                  );
+                  const participants = participantsSnapshot || [];
+                  if (participants.includes(userData?.handle)) {
+                    return { id: channelId, name: channelName };
+                  }
+                  return null;
+                }
+              );
+
+              const filteredChannels = (
+                await Promise.all(channelPromises)
+              ).filter((channel) => channel !== null);
+
+              // Return the team only if the user is a member or owner
+              if (
+                members.includes(userData?.handle) ||
+                owner === userData?.handle
+              ) {
+                return {
+                  id: teamId,
+                  name: team.teamName,
+                  owner: owner,
+                  channels: filteredChannels,
+                };
+              }
+              return null;
+            }
           );
 
-        setTeams(teamsList);
-      } else {
-        setTeams([]);
-      }
-      setLoading(false);
-    });
+          const filteredTeams = (await Promise.all(teamPromises)).filter(
+            (team) => team !== null
+          );
+          setTeams(filteredTeams);
+        } else {
+          setTeams([]);
+        }
+        setLoading(false);
+      });
+    };
+
+    fetchTeams();
   }, [userData?.handle]);
 
   return (
@@ -66,10 +106,10 @@ export default function Chats() {
         padding: 2,
         height: 'calc(100vh - 64px)', // Subtract header height
         overflow: 'auto',
-        marginBottom: 3
+        marginBottom: 3,
       }}
     >
-      {/* Header section remains fixed */}
+      {/* Header section */}
       <Box sx={{ flexShrink: 0 }}>
         <Typography
           variant="h4"
@@ -126,10 +166,10 @@ export default function Chats() {
               <Card key={team.id} variant="outlined" sx={{ padding: 2 }}>
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: 'teal' }}>{team.teamName[0]}</Avatar>
+                    <Avatar sx={{ bgcolor: 'teal' }}>{team.name[0]}</Avatar>
                     <Box>
                       <Typography variant="h6" fontWeight="bold">
-                        {team.teamName}
+                        {team.name}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
                         Owner: {team.owner}
@@ -146,14 +186,14 @@ export default function Chats() {
                     <AccordionDetails>
                       <Stack direction="column" spacing={1}>
                         {team.channels.length > 0 ? (
-                          team.channels.map((channelName, index) => (
+                          team.channels.map((channel) => (
                             <Chip
-                              key={index}
-                              label={channelName}
+                              key={channel.id}
+                              label={channel.name}
                               size="small"
                               onClick={() =>
                                 navigate(
-                                  `/teams/${team.id}/channels/${channelName}`
+                                  `/teams/${team.id}/channels/${channel.id}`
                                 )
                               }
                             />
