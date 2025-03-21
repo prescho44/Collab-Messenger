@@ -26,6 +26,7 @@ import {
   Popover,
   Badge,
   Button,
+  Modal,
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
@@ -36,6 +37,9 @@ import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
+import GifBoxIcon from '@mui/icons-material/GifBox';
+import { GiphyFetch } from '@giphy/js-fetch-api';
+import { Grid } from '@giphy/react-components';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
@@ -51,6 +55,9 @@ const ChatView = () => {
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [messageInputAnchorEl, setMessageInputAnchorEl] = useState(null);
+  const [showGiphyModal, setShowGiphyModal] = useState(false);
+  const [giphySearchTerm, setGiphySearchTerm] = useState('');
+  const gf = new GiphyFetch('VzWDxyDf7RblAUpx7HSYDSD3D6dn1SzZ'); // Replace with your Giphy API key
 
   const navigate = useNavigate();
 
@@ -124,6 +131,30 @@ const ChatView = () => {
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
+    }
+  };
+
+  const handleSendGif = async (gifUrl) => {
+    try {
+      const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
+      const newMessageRef = push(messagesRef);
+
+      await set(newMessageRef, {
+        content: gifUrl,
+        sender: user.uid,
+        timestamp: new Date().toString(),
+        senderName: userData?.handle,
+        senderPhoto: userData?.photo,
+        edited: false,
+        readBy: {
+          [user.uid]: true,
+        },
+        isGif: true,
+      });
+
+      setShowGiphyModal(false);
+    } catch (error) {
+      console.error('Error sending GIF:', error);
     }
   };
 
@@ -321,6 +352,29 @@ const ChatView = () => {
     });
   };
 
+  const renderGifGrid = () => (
+    <Grid
+      key={giphySearchTerm} // Add key to re-render the grid when the search term changes
+      width={310}
+      columns={2}
+      hideAttribution={true}
+      fetchGifs={async (offset) => {
+        try {
+          return giphySearchTerm
+            ? await gf.search(giphySearchTerm, { offset, limit: 9 })
+            : await gf.trending({ offset, limit: 9 });
+        } catch (error) {
+          console.error('Error fetching GIFs:', error);
+          return { data: [] };
+        }
+      }}
+      onGifClick={(gif, e) => {
+        e.preventDefault();
+        handleSendGif(gif.images.original.url);
+      }}
+    />
+  );
+
   if (loading) {
     return (
       <Box
@@ -458,7 +512,15 @@ const ChatView = () => {
                         <MoreHorizIcon />
                       </IconButton>
                     </Stack>
-                    <Typography variant="body1">{message.content}</Typography>
+                    {message.isGif ? (
+                      <img
+                        src={message.content}
+                        alt="GIF"
+                        style={{ maxWidth: '100%' }}
+                      />
+                    ) : (
+                      <Typography variant="body1">{message.content}</Typography>
+                    )}
                     {message.reactions && (
                       <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                         {Object.entries(message.reactions).map(
@@ -538,7 +600,7 @@ const ChatView = () => {
 
         <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
           <form onSubmit={handleSendMessage}>
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={1}>
               <TextField
                 fullWidth
                 variant="outlined"
@@ -554,14 +616,21 @@ const ChatView = () => {
                   setShowEmojiPicker(!showEmojiPicker);
                 }}
               >
-                <EmojiEmotionsIcon />
+                <EmojiEmotionsIcon sx={{ fontSize: 32 }} />{' '}
+              </IconButton>
+              <IconButton
+                type="button"
+                color="primary"
+                onClick={() => setShowGiphyModal(true)}
+              >
+                <GifBoxIcon sx={{ fontSize: 32 }} />
               </IconButton>
               <IconButton
                 type="submit"
                 color="primary"
                 disabled={!newMessage.trim()}
               >
-                <SendIcon />
+                <SendIcon sx={{ fontSize: 32 }} />
               </IconButton>
             </Stack>
           </form>
@@ -586,6 +655,36 @@ const ChatView = () => {
               width={350}
             />
           </Popover>
+          <Modal
+            open={showGiphyModal}
+            onClose={() => setShowGiphyModal(false)}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: 'background.paper',
+                p: 2,
+                borderRadius: 2,
+                width: 350,
+                maxHeight: 400,
+                overflowY: 'auto',
+              }}
+            >
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search GIFs..."
+                value={giphySearchTerm}
+                onChange={(e) => setGiphySearchTerm(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              {renderGifGrid()}
+            </Box>
+          </Modal>
         </Box>
       </Box>
     </Box>
