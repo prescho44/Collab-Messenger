@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { Box, TextField, IconButton, Popover, Stack, Input } from '@mui/material';
+import { Box, TextField, IconButton, Popover, Stack } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { Grid } from '@giphy/react-components';
 import Picker from 'emoji-picker-react';
 import GifBoxIcon from '@mui/icons-material/GifBox';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const gf = new GiphyFetch('xGgAUZiSEEv1Ov0kFgficAOon2TjOCzw');
 
@@ -40,21 +38,6 @@ const MessageInput = ({ handleSendMessage, themeMode }) => {
   const handleGifSelect = (gif) => {
     handleSendMessage('', gif.images.original.url, 'gif');
     setShowGiphyPicker(false);
-  };
-
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const storage = getStorage();
-    const fileRef = storageRef(storage, `uploads/${file.name}`);
-    try {
-      await uploadBytes(fileRef, file);
-      const fileUrl = await getDownloadURL(fileRef);
-      handleSendMessage('', fileUrl, 'file');
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    }
   };
 
   return (
@@ -93,18 +76,6 @@ const MessageInput = ({ handleSendMessage, themeMode }) => {
             }}
           >
             <GifBoxIcon alt="Giphy" style={{ width: 24, height: 24 }} />
-          </IconButton>
-          <IconButton
-            type="button"
-            color="primary"
-            component="label"
-          >
-            <AttachFileIcon />
-            <Input
-              type="file"
-              hidden
-              onChange={handleFileChange}
-            />
           </IconButton>
           <IconButton type="submit" color="primary" disabled={!newMessage.trim()}>
             <SendIcon />

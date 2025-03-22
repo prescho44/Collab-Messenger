@@ -38,13 +38,14 @@ export default function Chats() {
       const teamsRef = ref(db, 'teams');
       onValue(teamsRef, async (snapshot) => {
         const teamsData = snapshot.val();
+        console.log('Fetched teams data:', teamsData); // Log fetched teams data
         if (teamsData) {
           const teamPromises = Object.entries(teamsData).map(
             async ([teamId, team]) => {
               const members = team.members || [];
               const owner = team.owner || '';
 
-              // Filter channels the user belongs to
+              // Filter channels the user belongs to or owns
               const channelPromises = Object.entries(team.channels || {}).map(
                 async ([channelId, channelName]) => {
                   const channelParticipantsRef = ref(
@@ -59,7 +60,8 @@ export default function Chats() {
                     )
                   );
                   const participants = participantsSnapshot || [];
-                  if (participants.includes(userData?.handle)) {
+                  console.log(`Participants for channel ${channelId}:`, participants); // Log participants
+                  if (participants.includes(userData?.handle) || owner === userData?.handle) {
                     return { id: channelId, name: channelName };
                   }
                   return null;
@@ -69,6 +71,8 @@ export default function Chats() {
               const filteredChannels = (
                 await Promise.all(channelPromises)
               ).filter((channel) => channel !== null);
+
+              console.log(`Filtered channels for team ${teamId}:`, filteredChannels); // Log filtered channels
 
               // Return the team only if the user is a member or owner
               if (
@@ -90,6 +94,7 @@ export default function Chats() {
           const filteredTeams = (await Promise.all(teamPromises)).filter(
             (team) => team !== null
           );
+          console.log('Filtered teams:', filteredTeams); // Log filtered teams
           setTeams(filteredTeams);
         } else {
           setTeams([]);
@@ -170,7 +175,7 @@ export default function Chats() {
       {isTeamChannelURL && (
         <Stack spacing={2} sx={{ alignItems: 'center', width: '100%' }}>
           <ToggleButtonGroup
-            maxWidth
+            maxwidth
             color="primary"
             value={alignment}
             exclusive
@@ -196,7 +201,7 @@ export default function Chats() {
         <Button
           variant="contained"
           color="primary"
-          sx={{ maxWidth: 200, mb: 2 }}
+          sx={{ maxwidth: 200, mb: 2 }}
           onClick={() => navigate('/new-team')}
         >
           New Chat
@@ -204,7 +209,7 @@ export default function Chats() {
         <Button
           variant="contained"
           color="secondary"
-          sx={{ maxWidth: 200, mb: 2, ml: 2 }}
+          sx={{ maxwidth: 200, mb: 2, ml: 2 }}
           onClick={() => navigate('/new-channel')}
         >
           New Channel

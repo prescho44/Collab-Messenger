@@ -142,7 +142,7 @@ const Notifications = () => {
   return (
     <>
       {/* Always show the notification icon, but conditionally render the badge */}
-      <IconButton color="inherit" onClick={handleMenuOpen}>
+      <div color="inherit" onClick={handleMenuOpen}>
         {userData?.status === "Online" ? (
           <Badge badgeContent={newMessages.length} color="error">
             <CircleNotificationsIcon sx={{ fontSize: 30 }} />
@@ -150,7 +150,7 @@ const Notifications = () => {
         ) : (
           <CircleNotificationsIcon sx={{ fontSize: 30 }} />
         )}
-      </IconButton>
+      </div>
 
       <Menu
         anchorEl={anchorEl}

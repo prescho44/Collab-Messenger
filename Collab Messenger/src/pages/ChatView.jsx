@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../configs/firebaseConfig';
 import {
@@ -9,62 +9,44 @@ import {
   update,
   remove,
   get,
+  off,
 } from 'firebase/database';
 import { AppContext } from '../store/app.context';
 import {
   Box,
-  TextField,
-  IconButton,
-  Paper,
   Typography,
-  Avatar,
   Stack,
-  Divider,
   CircularProgress,
   Menu,
   MenuItem,
   Popover,
-  Badge,
   Button,
-  Modal,
+  IconButton,
+  Divider,
 } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 import Chats from './Chats';
 import Picker from 'emoji-picker-react';
-import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
-import GifBoxIcon from '@mui/icons-material/GifBox';
-import { GiphyFetch } from '@giphy/js-fetch-api';
-import { Grid } from '@giphy/react-components';
+import MessageInput from '../components/Messages/MessageInput';
+import MessageList from '../components/Messages/MessageList';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
   const { themeMode } = useContext(ThemeContext);
   const { user, userData } = useContext(AppContext);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef(null);
-  const mainChatRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [messageInputAnchorEl, setMessageInputAnchorEl] = useState(null);
-  const [showGiphyModal, setShowGiphyModal] = useState(false);
-  const [giphySearchTerm, setGiphySearchTerm] = useState('');
-  const gf = new GiphyFetch('VzWDxyDf7RblAUpx7HSYDSD3D6dn1SzZ'); // Replace with your Giphy API key
-
   const navigate = useNavigate();
+  const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
 
   useEffect(() => {
     if (!teamId || !channelId) return;
 
-    const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
     const unsubscribe = onValue(messagesRef, (snapshot) => {
       if (snapshot.exists()) {
         const messagesData = snapshot.val();
@@ -102,22 +84,16 @@ const ChatView = () => {
     return () => unsubscribe();
   }, [teamId, channelId, user.uid]);
 
-  useEffect(() => {
-    if (mainChatRef.current) {
-      mainChatRef.current.scrollTop = mainChatRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async (content, gifUrl, type) => {
+    if (!content.trim() && !gifUrl) return;
 
     try {
-      const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
       const newMessageRef = push(messagesRef);
 
       await set(newMessageRef, {
-        content: newMessage,
+        content,
+        gifUrl,
+        type,
         sender: user.uid,
         timestamp: new Date().toString(),
         senderName: userData?.handle,
@@ -127,114 +103,8 @@ const ChatView = () => {
           [user.uid]: true,
         },
       });
-
-      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
-    }
-  };
-
-  const handleSendGif = async (gifUrl) => {
-    try {
-      const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
-      const newMessageRef = push(messagesRef);
-
-      await set(newMessageRef, {
-        content: gifUrl,
-        sender: user.uid,
-        timestamp: new Date().toString(),
-        senderName: userData?.handle,
-        senderPhoto: userData?.photo,
-        edited: false,
-        readBy: {
-          [user.uid]: true,
-        },
-        isGif: true,
-      });
-
-      setShowGiphyModal(false);
-    } catch (error) {
-      console.error('Error sending GIF:', error);
-    }
-  };
-
-  const handleLeaveTeam = async () => {
-    const userConfirmed = window.confirm(
-      'Are you sure you want to leave this team? This will remove you from the team and all its channels.'
-    );
-
-    if (!userConfirmed) return;
-
-    try {
-      // Remove the user from the team's members
-      const teamMembersRef = ref(db, `teams/${teamId}/members`);
-      const snapshot = await get(teamMembersRef);
-
-      if (snapshot.exists()) {
-        const members = snapshot.val();
-        if (Array.isArray(members)) {
-          const updatedMembers = members.filter(
-            (member) => member !== userData?.handle
-          );
-          await set(teamMembersRef, updatedMembers);
-        }
-      }
-
-      // Remove the user from all channels in the team
-      const channelsRef = ref(db, `channels/${teamId}`);
-      const channelsSnapshot = await get(channelsRef);
-
-      if (channelsSnapshot.exists()) {
-        const channels = channelsSnapshot.val();
-        for (const channelId in channels) {
-          const participantsRef = ref(
-            db,
-            `channels/${teamId}/${channelId}/participants`
-          );
-          const participantsSnapshot = await get(participantsRef);
-
-          if (participantsSnapshot.exists()) {
-            const participants = participantsSnapshot.val();
-            const updatedParticipants = participants.filter(
-              (participant) => participant !== userData?.handle
-            );
-            await set(participantsRef, updatedParticipants);
-          }
-        }
-      }
-
-      // Navigate back to the main page
-      navigate('/');
-    } catch (error) {
-      console.error('Error leaving team:', error);
-    }
-  };
-
-  const handleLeaveChannel = async () => {
-    const userConfirmed = window.confirm(
-      'Are you sure you want to leave this channel?'
-    );
-
-    if (!userConfirmed) return;
-
-    try {
-      const participantsRef = ref(
-        db,
-        `channels/${teamId}/${channelId}/participants`
-      );
-      const snapshot = await get(participantsRef);
-
-      if (snapshot.exists()) {
-        const participants = snapshot.val();
-        const updatedParticipants = participants.filter(
-          (participant) => participant !== userData?.handle
-        );
-        await set(participantsRef, updatedParticipants);
-      }
-
-      navigate('/');
-    } catch (error) {
-      console.error('Error leaving channel:', error);
     }
   };
 
@@ -340,11 +210,6 @@ const ChatView = () => {
     handleMenuClose();
   };
 
-  const onEmojiClick = (emojiObject) => {
-    setNewMessage((prevMessage) => prevMessage + emojiObject.emoji);
-    setShowEmojiPicker(false);
-  };
-
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -352,28 +217,80 @@ const ChatView = () => {
     });
   };
 
-  const renderGifGrid = () => (
-    <Grid
-      key={giphySearchTerm} // Add key to re-render the grid when the search term changes
-      width={310}
-      columns={2}
-      hideAttribution={true}
-      fetchGifs={async (offset) => {
-        try {
-          return giphySearchTerm
-            ? await gf.search(giphySearchTerm, { offset, limit: 9 })
-            : await gf.trending({ offset, limit: 9 });
-        } catch (error) {
-          console.error('Error fetching GIFs:', error);
-          return { data: [] };
-        }
-      }}
-      onGifClick={(gif, e) => {
-        e.preventDefault();
-        handleSendGif(gif.images.original.url);
-      }}
-    />
-  );
+  const handleLeaveChannel = async () => {
+    const userConfirmed = window.confirm(
+      'Are you sure you want to leave this channel?'
+    );
+
+    if (!userConfirmed) return;
+
+    try {
+      const participantsRef = ref(
+        db,
+        `channels/${teamId}/${channelId}/participants`
+      );
+      const snapshot = await get(participantsRef);
+
+      if (snapshot.exists()) {
+        const participants = snapshot.val();
+        const updatedParticipants = participants.filter(
+          (participant) => participant !== userData?.handle
+        );
+        await set(participantsRef, updatedParticipants);
+      }
+
+      // Remove the listener for the messages in this channel
+      off(messagesRef);
+
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving channel:', error);
+    }
+  };
+
+  const handleLeaveTeam = async () => {
+    const userConfirmed = window.confirm(
+      'Are you sure you want to leave this team? This will remove you from the team and all its channels.'
+    );
+
+    if (!userConfirmed) return;
+
+    try {
+      const teamMembersRef = ref(db, `teams/${teamId}/members`);
+      const teamMembersSnapshot = await new Promise((resolve) =>
+        onValue(teamMembersRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+      );
+      const teamMembers = teamMembersSnapshot || [];
+      const updatedTeamMembers = teamMembers.filter((member) => member !== userData.handle);
+      await set(teamMembersRef, updatedTeamMembers);
+
+      // Remove user from all channels in the team
+      const channelsRef = ref(db, `channels/${teamId}`);
+      const channelsSnapshot = await new Promise((resolve) =>
+        onValue(channelsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+      );
+      const channels = channelsSnapshot || {};
+      for (const channelId in channels) {
+        const participantsRef = ref(db, `channels/${teamId}/${channelId}/participants`);
+        const participantsSnapshot = await new Promise((resolve) =>
+          onValue(participantsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+        );
+        const participants = participantsSnapshot || [];
+        const updatedParticipants = participants.filter((participant) => participant !== userData.uid);
+        await set(participantsRef, updatedParticipants);
+
+        // Remove the listener for the messages in this channel
+        const channelMessagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
+        off(channelMessagesRef);
+      }
+
+      // Update local state
+      setMessages([]);
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving team:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -448,113 +365,12 @@ const ChatView = () => {
           </Stack>
         </Box>
 
-        <Box
-          ref={mainChatRef}
-          sx={{
-            flex: 1,
-            overflowY: 'auto', // Enable vertical scrolling
-            paddingRight: 1, // Add some padding for the scrollbar
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'background.paper',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: 'primary.main',
-              borderRadius: '4px',
-            },
-          }}
-        >
-          <Stack spacing={2}>
-            {messages.map((message) => (
-              <Paper
-                key={message.id}
-                sx={{
-                  p: 2,
-                  maxWidth: '70%',
-                  alignSelf:
-                    message.sender === user.uid ? 'flex-end' : 'flex-start',
-                  bgcolor:
-                    message.sender === user.uid
-                      ? 'primary.dark'
-                      : 'background.paper',
-                }}
-                elevation={8}
-              >
-                <Stack direction="row" spacing={2} alignItems="start">
-                  <Avatar
-                    src={message.senderPhoto}
-                    sx={{ width: 40, height: 40 }}
-                  />
-                  <Box>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography variant="subtitle2" color="text.secondary">
-                        {message.senderName || 'Unknown User'}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatTime(message.timestamp)}
-                      </Typography>
-                      {message.edited && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ fontStyle: 'italic', fontSize: '0.75rem' }}
-                        >
-                          Edited
-                        </Typography>
-                      )}
-                      <IconButton
-                        type="button"
-                        color="primary"
-                        onClick={(e) => handleMenuClick(e, message)}
-                      >
-                        <MoreHorizIcon />
-                      </IconButton>
-                    </Stack>
-                    {message.isGif ? (
-                      <img
-                        src={message.content}
-                        alt="GIF"
-                        style={{ maxWidth: '100%' }}
-                      />
-                    ) : (
-                      <Typography variant="body1">{message.content}</Typography>
-                    )}
-                    {message.reactions && (
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        {Object.entries(message.reactions).map(
-                          ([emoji, users]) => {
-                            const count = Object.keys(users).length;
-                            return count > 0 ? (
-                              <Typography
-                                key={emoji}
-                                variant="body2"
-                                sx={{
-                                  bgcolor: 'rgba(0,0,0,0.1)',
-                                  borderRadius: 1,
-                                  px: 1,
-                                  py: 0.5,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 0.5,
-                                }}
-                              >
-                                {emoji}
-                                {count > 1 && count}
-                              </Typography>
-                            ) : null;
-                          }
-                        )}
-                      </Box>
-                    )}
-                  </Box>
-                </Stack>
-              </Paper>
-            ))}
-            <div ref={messagesEndRef} />
-          </Stack>
-        </Box>
+        <MessageList
+          messages={messages}
+          user={user}
+          handleMenuClick={handleMenuClick}
+          formatTime={formatTime}
+        />
 
         <Menu
           anchorEl={anchorEl}
@@ -598,94 +414,7 @@ const ChatView = () => {
 
         <Divider />
 
-        <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-          <form onSubmit={handleSendMessage}>
-            <Stack direction="row" spacing={1}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-              />
-              <IconButton
-                type="button"
-                color="primary"
-                onClick={(e) => {
-                  setMessageInputAnchorEl(e.currentTarget);
-                  setShowEmojiPicker(!showEmojiPicker);
-                }}
-              >
-                <EmojiEmotionsIcon sx={{ fontSize: 32 }} />{' '}
-              </IconButton>
-              <IconButton
-                type="button"
-                color="primary"
-                onClick={() => setShowGiphyModal(true)}
-              >
-                <GifBoxIcon sx={{ fontSize: 32 }} />
-              </IconButton>
-              <IconButton
-                type="submit"
-                color="primary"
-                disabled={!newMessage.trim()}
-              >
-                <SendIcon sx={{ fontSize: 32 }} />
-              </IconButton>
-            </Stack>
-          </form>
-          <Popover
-            open={showEmojiPicker}
-            anchorEl={messageInputAnchorEl}
-            onClose={() => setShowEmojiPicker(false)}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
-            }}
-            transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'center',
-            }}
-          >
-            <Picker
-              theme={themeMode === 'dark' ? 'dark' : 'light'}
-              emojiStyle="native"
-              onEmojiClick={onEmojiClick}
-              height={400}
-              width={350}
-            />
-          </Popover>
-          <Modal
-            open={showGiphyModal}
-            onClose={() => setShowGiphyModal(false)}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Box
-              sx={{
-                bgcolor: 'background.paper',
-                p: 2,
-                borderRadius: 2,
-                width: 350,
-                maxHeight: 400,
-                overflowY: 'auto',
-              }}
-            >
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Search GIFs..."
-                value={giphySearchTerm}
-                onChange={(e) => setGiphySearchTerm(e.target.value)}
-                sx={{ mb: 2 }}
-              />
-              {renderGifGrid()}
-            </Box>
-          </Modal>
-        </Box>
+        <MessageInput handleSendMessage={handleSendMessage} themeMode={themeMode} />
       </Box>
     </Box>
   );

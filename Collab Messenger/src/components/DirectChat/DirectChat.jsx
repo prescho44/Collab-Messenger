@@ -69,7 +69,7 @@ const handleSendMessage = async () => {
 };
 
   return (
-    <Paper elevation={4} sx={{ maxWidth: 600, mx: 'auto', p: 4, mt: 5, borderRadius: 3 }}>
+    <Paper elevation={4} sx={{ maxwidth: 600, mx: 'auto', p: 4, mt: 5, borderRadius: 3 }}>
       <Typography variant="h4" gutterBottom>
         Direct Chat
       </Typography>

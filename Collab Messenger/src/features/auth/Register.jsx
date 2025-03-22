@@ -187,7 +187,7 @@ export default function Register() {
         minHeight: '100vh',
       }}
     >
-      <Paper elevation={3} sx={{ padding: 3, width: '100%', maxWidth: 400 }}>
+      <Paper elevation={3} sx={{ padding: 3, width: '100%', maxwidth: 400 }}>
         <Typography variant="h5" align="center" mb={2}>
           Create Account
         </Typography>

@@ -31,7 +31,7 @@ export default function Footer() {
     >
       <Divider sx={{ bgcolor: "grey.700", width: "100%", mb: "25px" }} />
 
-      <Container maxWidth="lg">
+      <Container maxwidth="lg">
         <Stack spacing={3} alignItems="center">
           {/* Navigation Links */}
           <Stack

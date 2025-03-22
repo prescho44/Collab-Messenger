@@ -33,7 +33,7 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
             key={message.id}
             sx={{
               p: 2,
-              maxWidth: '70%',
+              maxwidth: '70%',
               alignSelf: message.sender === user.uid ? 'flex-end' : 'flex-start',
               bgcolor: message.sender === user.uid ? 'primary.dark' : 'background.paper',
             }}
@@ -74,7 +74,7 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
                     src={message.gifUrl}
                     alt="GIF"
                     style={{
-                      maxWidth: '100%',
+                      maxwidth: '100%',
                       maxHeight: '200px', // Set a maximum height for the GIF
                       borderRadius: '8px',
                       marginTop: '8px',
@@ -86,7 +86,7 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
                     src={message.fileUrl}
                     alt="File"
                     style={{
-                      maxWidth: '100%',
+                      maxwidth: '100%',
                       maxHeight: '200px', // Set a maximum height for the file
                       borderRadius: '8px',
                       marginTop: '8px',
