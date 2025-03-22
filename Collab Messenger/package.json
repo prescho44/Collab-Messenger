@@ -21,6 +21,7 @@
     "@daily-co/daily-js": "^0.76.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@giphy/react-components": "^10.0.1",
     "@headlessui/react": "^2.2.0",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.7",

@@ -1,7 +1,7 @@
 import { db } from '../configs/firebaseConfig';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, set } from 'firebase/database';
 import { useEffect, useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom'; // Import useLocation and useParams
 import { AppContext } from '../store/app.context';
 import {
   Box,
@@ -20,39 +20,136 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 export default function Chats() {
   const { userData } = useContext(AppContext);
   const [teams, setTeams] = useState([]);
+  const [members, setMembers] = useState([]); // State for team members
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation(); // Get current URL
+  const { teamId } = useParams(); // Extract teamId using useParams
+  const [alignment, setAlignment] = useState('tabTeamsAndChat');
 
   useEffect(() => {
-    const postsRef = ref(db, 'teams');
-    onValue(postsRef, (snapshot) => {
-      const postsData = snapshot.val();
-      if (postsData) {
-        const teamsList = Object.entries(postsData)
-          .map(([id, team]) => ({
-            id,
-            teamName: team.teamName || 'Unnamed Team',
-            owner: team.owner || 'Unknown Owner',
-            channels: team.channels ? Object.values(team.channels) : [],
-            members: team.members ? Object.values(team.members) : [],
-          }))
-          .filter(
-            (team) =>
-              team.members.includes(userData?.handle) ||
-              team.owner === userData?.handle
+    const fetchTeams = async () => {
+      const teamsRef = ref(db, 'teams');
+      onValue(teamsRef, async (snapshot) => {
+        const teamsData = snapshot.val();
+        if (teamsData) {
+          const teamPromises = Object.entries(teamsData).map(
+            async ([teamId, team]) => {
+              const members = team.members || [];
+              const owner = team.owner || '';
+
+              // Filter channels the user belongs to
+              const channelPromises = Object.entries(team.channels || {}).map(
+                async ([channelId, channelName]) => {
+                  const channelParticipantsRef = ref(
+                    db,
+                    `channels/${teamId}/${channelId}/participants`
+                  );
+                  const participantsSnapshot = await new Promise((resolve) =>
+                    onValue(
+                      channelParticipantsRef,
+                      (snap) => resolve(snap.val()),
+                      { onlyOnce: true }
+                    )
+                  );
+                  const participants = participantsSnapshot || [];
+                  if (participants.includes(userData?.handle)) {
+                    return { id: channelId, name: channelName };
+                  }
+                  return null;
+                }
+              );
+
+              const filteredChannels = (
+                await Promise.all(channelPromises)
+              ).filter((channel) => channel !== null);
+
+              // Return the team only if the user is a member or owner
+              if (
+                members.includes(userData?.handle) ||
+                owner === userData?.handle
+              ) {
+                return {
+                  id: teamId,
+                  name: team.teamName,
+                  owner: owner,
+                  members: members, // Add members to the team object
+                  channels: filteredChannels,
+                };
+              }
+              return null;
+            }
           );
 
-        setTeams(teamsList);
-      } else {
-        setTeams([]);
-      }
-      setLoading(false);
-    });
+          const filteredTeams = (await Promise.all(teamPromises)).filter(
+            (team) => team !== null
+          );
+          setTeams(filteredTeams);
+        } else {
+          setTeams([]);
+        }
+        setLoading(false);
+      });
+    };
+
+    fetchTeams();
   }, [userData?.handle]);
+
+  const handleChange = (event, newAlignment) => {
+    setAlignment(newAlignment);
+
+    // Update members when "Members" is selected
+    if (newAlignment === 'tabMembers') {
+      const currentTeam = teams.find((team) => team.id === teamId);
+      setMembers(currentTeam?.members || []);
+    }
+  };
+
+  const handleKickMember = (memberToKick) => {
+    const teamRef = ref(db, `teams/${teamId}/members`);
+    onValue(teamRef, (snapshot) => {
+      const members = snapshot.val() || [];
+      const updatedMembers = members.filter(
+        (member) => member !== memberToKick
+      ); // Remove the kicked member
+      set(teamRef, updatedMembers); // Update the database with the new members list
+
+      // Update the local state to reflect the change immediately
+      setMembers((prevMembers) =>
+        prevMembers.filter((member) => member !== memberToKick)
+      );
+    });
+
+    // Remove the kicked member's access to the chat
+    const channelsRef = ref(db, `channels/${teamId}`);
+    onValue(channelsRef, (snapshot) => {
+      const channels = snapshot.val() || {};
+      Object.keys(channels).forEach((channelId) => {
+        const participantsRef = ref(
+          db,
+          `channels/${teamId}/${channelId}/participants`
+        );
+        onValue(participantsRef, (participantsSnapshot) => {
+          const participants = participantsSnapshot.val() || [];
+          const updatedParticipants = participants.filter(
+            (participant) => participant !== memberToKick
+          );
+          set(participantsRef, updatedParticipants);
+        });
+      });
+    });
+  };
+
+  // Determine if the current URL matches the required pattern
+  const isTeamChannelURL = /^\/teams\/[^/]+\/channels\/[^/]+$/.test(
+    location.pathname
+  );
 
   return (
     <Container
@@ -66,10 +163,27 @@ export default function Chats() {
         padding: 2,
         height: 'calc(100vh - 64px)', // Subtract header height
         overflow: 'auto',
-        marginBottom: 3
+        marginBottom: 3,
       }}
     >
-      {/* Header section remains fixed */}
+      {/* Show ToggleButtonGroup only if the URL matches */}
+      {isTeamChannelURL && (
+        <Stack spacing={2} sx={{ alignItems: 'center', width: '100%' }}>
+          <ToggleButtonGroup
+            maxWidth
+            color="primary"
+            value={alignment}
+            exclusive
+            onChange={handleChange}
+            aria-label="Platform"
+          >
+            <ToggleButton value="tabTeamsAndChat">Teams & Chats</ToggleButton>
+            <ToggleButton value="tabMembers">Members</ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+      )}
+
+      {/* Header section */}
       <Box sx={{ flexShrink: 0 }}>
         <Typography
           variant="h4"
@@ -102,8 +216,8 @@ export default function Chats() {
           <CircularProgress color="primary" />
           <Typography color="primary">Loading teams...</Typography>
         </Stack>
-      ) : (
-        // Scrollable teams section
+      ) : alignment === 'tabTeamsAndChat' ? (
+        // Teams & Chats view
         <Box
           sx={{
             flex: 1,
@@ -126,10 +240,10 @@ export default function Chats() {
               <Card key={team.id} variant="outlined" sx={{ padding: 2 }}>
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: 'teal' }}>{team.teamName[0]}</Avatar>
+                    <Avatar sx={{ bgcolor: 'teal' }}>{team.name[0]}</Avatar>
                     <Box>
                       <Typography variant="h6" fontWeight="bold">
-                        {team.teamName}
+                        {team.name}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
                         Owner: {team.owner}
@@ -146,14 +260,14 @@ export default function Chats() {
                     <AccordionDetails>
                       <Stack direction="column" spacing={1}>
                         {team.channels.length > 0 ? (
-                          team.channels.map((channelName, index) => (
+                          team.channels.map((channel) => (
                             <Chip
-                              key={index}
-                              label={channelName}
+                              key={channel.id}
+                              label={channel.name}
                               size="small"
                               onClick={() =>
                                 navigate(
-                                  `/teams/${team.id}/channels/${channelName}`
+                                  `/teams/${team.id}/channels/${channel.id}`
                                 )
                               }
                             />
@@ -169,6 +283,62 @@ export default function Chats() {
                 </CardContent>
               </Card>
             ))}
+          </Stack>
+        </Box>
+      ) : (
+        // Members view
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            paddingRight: 1,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'background.paper',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'primary.main',
+              borderRadius: '4px',
+            },
+          }}
+        >
+          <Stack spacing={2}>
+            {members.length > 0 ? (
+              members.map((member, index) => (
+                <Card key={index} variant="outlined" sx={{ padding: 2 }}>
+                  <CardContent>
+                    <Stack direction="column" alignItems="center" spacing={2}>
+                      <Avatar sx={{ bgcolor: 'teal', width: 56, height: 56 }}>
+                        {member[0]}
+                      </Avatar>
+                      <Typography variant="h6" fontWeight="bold">
+                        {member}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Member of the team
+                      </Typography>
+                      {teams.find((team) => team.id === teamId)?.owner ===
+                        userData?.handle && (
+                        <Button
+                          variant="contained"
+                          color="error"
+                          size="small"
+                          onClick={() => handleKickMember(member)}
+                        >
+                          Kick
+                        </Button>
+                      )}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                No members found.
+              </Typography>
+            )}
           </Stack>
         </Box>
       )}
