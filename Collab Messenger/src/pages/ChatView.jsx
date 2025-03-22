@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../configs/firebaseConfig';
 import {
@@ -13,8 +13,12 @@ import {
 import { AppContext } from '../store/app.context';
 import {
   Box,
-  Typography,
+  TextField,
   IconButton,
+  Paper,
+  Typography,
+  Avatar,
+  Stack,
   Divider,
   CircularProgress,
   Menu,
@@ -24,9 +28,12 @@ import {
   Button,
   Modal,
 } from '@mui/material';
-import VideoCallIcon from '@mui/icons-material/VideoCall';
+import SendIcon from '@mui/icons-material/Send';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import Chats from './Chats';
 import Picker from 'emoji-picker-react';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
@@ -39,7 +46,10 @@ const ChatView = () => {
   const { themeMode } = useContext(ThemeContext);
   const { user, userData } = useContext(AppContext);
   const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef(null);
+  const mainChatRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
@@ -92,17 +102,22 @@ const ChatView = () => {
     return () => unsubscribe();
   }, [teamId, channelId, user.uid]);
 
-  const handleSendMessage = async (newMessage, fileUrl = null, messageType = 'text') => {
-    if (!newMessage.trim() && !fileUrl) return;
+  useEffect(() => {
+    if (mainChatRef.current) {
+      mainChatRef.current.scrollTop = mainChatRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
 
     try {
       const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
       const newMessageRef = push(messagesRef);
 
       await set(newMessageRef, {
-        content: messageType === 'text' ? newMessage : '',
-        gifUrl: messageType === 'gif' ? fileUrl : null,
-        fileUrl: messageType === 'file' ? fileUrl : null,
+        content: newMessage,
         sender: user.uid,
         timestamp: new Date().toString(),
         senderName: userData?.handle,
@@ -112,6 +127,8 @@ const ChatView = () => {
           [user.uid]: true,
         },
       });
+
+      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -208,7 +225,7 @@ const ChatView = () => {
       const snapshot = await get(participantsRef);
 
       if (snapshot.exists()) {
-        const participants = participants.val();
+        const participants = snapshot.val();
         const updatedParticipants = participants.filter(
           (participant) => participant !== userData?.handle
         );
@@ -321,6 +338,11 @@ const ChatView = () => {
 
     setEmojiAnchorEl(null);
     handleMenuClose();
+  };
+
+  const onEmojiClick = (emojiObject) => {
+    setNewMessage((prevMessage) => prevMessage + emojiObject.emoji);
+    setShowEmojiPicker(false);
   };
 
   const formatTime = (timestamp) => {
@@ -534,14 +556,18 @@ const ChatView = () => {
           </Stack>
         </Box>
 
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+        >
           {selectedMessage?.sender === user.uid ? (
-            [
-              <MenuItem key="edit" onClick={handleEditMessage}>Edit</MenuItem>,
-              <MenuItem key="delete" onClick={handleDeleteMessage}>Delete</MenuItem>
-            ]
+            <>
+              <MenuItem onClick={handleEditMessage}>Edit</MenuItem>
+              <MenuItem onClick={handleDeleteMessage}>Delete</MenuItem>
+            </>
           ) : (
-            <MenuItem key="react" onClick={handleReactMessage}>React</MenuItem>
+            <MenuItem onClick={handleReactMessage}>React</MenuItem>
           )}
         </Menu>
 
