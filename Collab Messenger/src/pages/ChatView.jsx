@@ -1,46 +1,34 @@
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../configs/firebaseConfig';
 import { ref, onValue, push, set, update, remove } from 'firebase/database';
 import { AppContext } from '../store/app.context';
 import {
   Box,
-  TextField,
-  IconButton,
-  Paper,
   Typography,
-  Avatar,
-  Stack,
+  IconButton,
   Divider,
   CircularProgress,
   Menu,
   MenuItem,
   Popover,
-  Badge,
 } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 import Chats from './Chats';
 import Picker from 'emoji-picker-react';
-import VideoCallIcon from '@mui/icons-material/VideoCall';
 import { ThemeContext } from '../store/theme.context';
-import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
+import MessageList from '../components/Messages/MessageList';
+import MessageInput from '../components/Messages/MessageInput';
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
   const { themeMode } = useContext(ThemeContext);
   const { user, userData } = useContext(AppContext);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef(null);
-  const mainChatRef = useRef(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [messageInputAnchorEl, setMessageInputAnchorEl] = useState(null);
 
   const navigate = useNavigate();
 
@@ -82,22 +70,17 @@ const ChatView = () => {
     return () => unsubscribe();
   }, [teamId, channelId, user.uid]);
 
-  useEffect(() => {
-    if (mainChatRef.current) {
-      mainChatRef.current.scrollTop = mainChatRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async (newMessage, fileUrl = null, messageType = 'text') => {
+    if (!newMessage.trim() && !fileUrl) return;
 
     try {
       const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
       const newMessageRef = push(messagesRef);
 
       await set(newMessageRef, {
-        content: newMessage,
+        content: messageType === 'text' ? newMessage : '',
+        gifUrl: messageType === 'gif' ? fileUrl : null,
+        fileUrl: messageType === 'file' ? fileUrl : null,
         sender: user.uid,
         timestamp: new Date().toString(),
         senderName: userData?.handle,
@@ -107,8 +90,6 @@ const ChatView = () => {
           [user.uid]: true,
         },
       });
-
-      setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -219,11 +200,6 @@ const ChatView = () => {
     handleMenuClose();
   };
 
-  const onEmojiClick = (emojiObject) => {
-    setNewMessage((prevMessage) => prevMessage + emojiObject.emoji);
-    setShowEmojiPicker(false);
-  };
-
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -245,8 +221,7 @@ const ChatView = () => {
   }
 
   return (
-    <Box sx={{ height: 'calc(100vh - 64px)', // Subtract header height
-      overflow: 'hidden', display: 'flex' }}>
+    <Box sx={{ height: 'calc(100vh - 64px)', overflow: 'hidden', display: 'flex' }}>
       {/* Sidebar - Chats Component */}
       <Box
         sx={{
@@ -256,7 +231,7 @@ const ChatView = () => {
           ml: 3,
           overflowY: 'auto',
           overflowX: 'hidden',
-          overflow:"height",
+          overflow: 'height',
         }}
       >
         <Chats />
@@ -282,118 +257,21 @@ const ChatView = () => {
           </IconButton>
         </Box>
 
-        <Box
-          ref={mainChatRef}
-          sx={{
-            flex: 1,
-            overflowY: 'auto', // Enable vertical scrolling
-            paddingRight: 1, // Add some padding for the scrollbar
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'background.paper',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: 'primary.main',
-              borderRadius: '4px',
-            },
-          }}
-        >
-          <Stack spacing={2}>
-            {messages.map((message) => (
-              <Paper
-                key={message.id}
-                sx={{
-                  p: 2,
-                  maxWidth: '70%',
-                  alignSelf:
-                    message.sender === user.uid ? 'flex-end' : 'flex-start',
-                  bgcolor:
-                    message.sender === user.uid
-                      ? 'primary.dark'
-                      : 'background.paper',
-                }}
-                elevation={8}
-              >
-                <Stack direction="row" spacing={2} alignItems="start">
-                  <Avatar
-                    src={message.senderPhoto}
-                    sx={{ width: 40, height: 40 }}
-                  />
-                  <Box>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography variant="subtitle2" color="text.secondary">
-                        {message.senderName || 'Unknown User'}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatTime(message.timestamp)}
-                      </Typography>
-                      {message.edited && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ fontStyle: 'italic', fontSize: '0.75rem' }}
-                        >
-                          Edited
-                        </Typography>
-                      )}
-                      <IconButton
-                        type="button"
-                        color="primary"
-                        onClick={(e) => handleMenuClick(e, message)}
-                      >
-                        <MoreHorizIcon />
-                      </IconButton>
-                    </Stack>
-                    <Typography variant="body1">{message.content}</Typography>
-                    {message.reactions && (
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                        {Object.entries(message.reactions).map(
-                          ([emoji, users]) => {
-                            const count = Object.keys(users).length;
-                            return count > 0 ? (
-                              <Typography
-                                key={emoji}
-                                variant="body2"
-                                sx={{
-                                  bgcolor: 'rgba(0,0,0,0.1)',
-                                  borderRadius: 1,
-                                  px: 1,
-                                  py: 0.5,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 0.5,
-                                }}
-                              >
-                                {emoji}
-                                {count > 1 && count}
-                              </Typography>
-                            ) : null;
-                          }
-                        )}
-                      </Box>
-                    )}
-                  </Box>
-                </Stack>
-              </Paper>
-            ))}
-            <div ref={messagesEndRef} />
-          </Stack>
-        </Box>
+        <MessageList
+          messages={messages}
+          user={user}
+          handleMenuClick={handleMenuClick}
+          formatTime={formatTime}
+        />
 
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-        >
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
           {selectedMessage?.sender === user.uid ? (
-            <>
-              <MenuItem onClick={handleEditMessage}>Edit</MenuItem>
-              <MenuItem onClick={handleDeleteMessage}>Delete</MenuItem>
-            </>
+            [
+              <MenuItem key="edit" onClick={handleEditMessage}>Edit</MenuItem>,
+              <MenuItem key="delete" onClick={handleDeleteMessage}>Delete</MenuItem>
+            ]
           ) : (
-            <MenuItem onClick={handleReactMessage}>React</MenuItem>
+            <MenuItem key="react" onClick={handleReactMessage}>React</MenuItem>
           )}
         </Menu>
 
@@ -424,57 +302,7 @@ const ChatView = () => {
 
         <Divider />
 
-        <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
-          <form onSubmit={handleSendMessage}>
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-              />
-              <IconButton
-                type="button"
-                color="primary"
-                onClick={(e) => {
-                  setMessageInputAnchorEl(e.currentTarget);
-                  setShowEmojiPicker(!showEmojiPicker);
-                }}
-              >
-                <EmojiEmotionsIcon />
-              </IconButton>
-              <IconButton
-                type="submit"
-                color="primary"
-                disabled={!newMessage.trim()}
-              >
-                <SendIcon />
-              </IconButton>
-            </Stack>
-          </form>
-          <Popover
-            open={showEmojiPicker}
-            anchorEl={messageInputAnchorEl}
-            onClose={() => setShowEmojiPicker(false)}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'center',
-            }}
-            transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'center',
-            }}
-          >
-            <Picker
-              theme={themeMode === 'dark' ? 'dark' : 'light'}
-              emojiStyle="native"
-              onEmojiClick={onEmojiClick}
-              height={400}
-              width={350}
-            />
-          </Popover>
-        </Box>
+        <MessageInput handleSendMessage={handleSendMessage} themeMode={themeMode} />
       </Box>
     </Box>
   );
