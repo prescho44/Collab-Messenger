@@ -24,6 +24,7 @@ import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
 import Friends from './features/auth/Friends';
 import MakeNewChannel from './pages/MakeNewChannel';
+import DirectChat from './components/DirectChat/DirectChat';
 
 const AppContent = () => {
   const location = useLocation();
@@ -85,6 +86,7 @@ const AppContent = () => {
 
   return (
     <AppContext.Provider value={{ ...appState, setAppState }}>
+      {console.log('AppContext Provider value:', { ...appState, setAppState })}
       <Box
         sx={{
           minHeight: '100vh',
@@ -106,7 +108,7 @@ const AppContent = () => {
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/chat/:chatId" element={<ChatView />} />
+            <Route path="/chat/:chatId" element={<DirectChat />} />
             <Route path="/new-team" element={<MakeNewTeam />} />
             <Route path="/new-channel" element={<MakeNewChannel />} />
             <Route path="/video-call" element={<VideoCall />} />

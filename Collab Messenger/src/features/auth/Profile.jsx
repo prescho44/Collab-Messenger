@@ -46,13 +46,16 @@ const Profile = ({ userId }) => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     setSendMessageLoading(true);
+    console.log("Send message button clicked");
     try {
       const chatId = await createDirectChat(currentUserData, userData);
+      console.log("Chat created with ID:", chatId);
       navigate(`/chat/${chatId}`);
     } catch (error) {
       console.error("Error creating direct chat:", error.message);
     } finally {
       setSendMessageLoading(false);
+      console.log("Send message loading state set to false");
     }
   };
 

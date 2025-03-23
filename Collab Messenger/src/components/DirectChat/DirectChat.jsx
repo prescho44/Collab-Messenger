@@ -5,6 +5,7 @@ import { ref, onValue, off, push, update } from 'firebase/database';
 import { db } from '../../configs/firebaseConfig';
 import { AppContext } from '../../store/app.context';
 import { Box, Typography, TextField, Button, Paper, List, ListItem, ListItemText, Avatar } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 
 const DirectChat = () => {
   const { chatId } = useParams();
@@ -15,6 +16,7 @@ const DirectChat = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    console.log('DirectChat component mounted');
     console.log('Setting up messages listener for chatId:', chatId);
     const messagesRef = ref(db, `messages/${chatId}`);
     const listener = onValue(messagesRef, (snapshot) => {
@@ -34,9 +36,11 @@ const DirectChat = () => {
         setMessages([]);
       }
       setLoading(false);
+      console.log('Loading state set to false');
     }, (error) => {
       console.error('Error fetching messages:', error.message);
       setLoading(false);
+      console.log('Loading state set to false due to error');
     });
 
     return () => {
@@ -46,6 +50,7 @@ const DirectChat = () => {
   }, [chatId]);
 
 useEffect(() => {
+  console.log('Messages updated, scrolling to bottom');
   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [chatId]);
 
@@ -54,6 +59,7 @@ const handleSendMessage = async () => {
   if (newMessage.trim() === '') return;
 
   try {
+    console.log('Sending message:', newMessage);
     const messageRef = push(ref(db, `messages/${chatId}`));
     const message = {
       content: newMessage,
@@ -62,6 +68,7 @@ const handleSendMessage = async () => {
     };
 
     await update(messageRef, message);
+    console.log('Message sent:', message);
     setNewMessage('');
   } catch (error) {
     console.error('Error sending message:', error.message);
@@ -73,8 +80,12 @@ const handleSendMessage = async () => {
       <Typography variant="h4" gutterBottom>
         Direct Chat
       </Typography>
+      {console.log('Rendering component with loading state:', loading)}
       {loading ? (
+        <>
         <CircularProgress sx={{ display: 'block', margin: '20px auto' }} />
+        {console.log('Loading state is true, showing CircularProgress')}
+        </>
       ) : (
         <>
       <Box sx={{ maxHeight: 400, overflowY: 'auto', mb: 2 }}>
