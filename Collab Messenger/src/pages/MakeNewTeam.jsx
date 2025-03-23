@@ -150,7 +150,7 @@ const MakeNewTeam = () => {
   return (
     <Box
       p={5}
-      maxwidth={{ xs: '100%', sm: '600px' }}
+      maxWidth={{ xs: '100%', sm: '600px' }}
       mx="auto"
       bgcolor="inherit"
       borderRadius="md"

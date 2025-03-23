@@ -90,7 +90,7 @@ const EditProfile = () => {
     <Paper
       elevation={4}
       sx={{
-        maxwidth: 600,
+        maxWidth: 600,
         mx: "auto",
         p: 4,
         mt: 5,

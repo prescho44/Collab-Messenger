@@ -48,7 +48,7 @@ const Login = () => {
   };
 
   return (
-    <Container component="main" maxwidth="xs"
+    <Container component="main" maxWidth="xs"
     sx={{
       height: "100vh",
       width: "100%",

@@ -15,7 +15,7 @@ const Home = () => {
   return (
     <Container
       component="main"
-      maxwidth="xs"
+      maxWidth="xs"
       sx={{
         width: "100%",
         marginLeft: "auto",
@@ -71,7 +71,7 @@ const Home = () => {
             <Button
               variant="contained"
               color="primary"
-              sx={{ mb: 2, width: "100%", maxwidth: 250, padding: "8px 16px" }}
+              sx={{ mb: 2, width: "100%", maxWidth: 250, padding: "8px 16px" }}
               onClick={() => handleNavigate("/login")}
             >
               Log In
@@ -79,7 +79,7 @@ const Home = () => {
             <Button
               variant="outlined"
               color="secondary"
-              sx={{ width: "100%", maxwidth: 250, padding: "8px 16px" }}
+              sx={{ width: "100%", maxWidth: 250, padding: "8px 16px" }}
               onClick={() => handleNavigate("/register")}
             >
               Register

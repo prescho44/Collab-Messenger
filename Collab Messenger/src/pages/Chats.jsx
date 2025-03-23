@@ -1,7 +1,7 @@
 import { db } from '../configs/firebaseConfig';
 import { ref, onValue, set } from 'firebase/database';
-import { useEffect, useState, useContext } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom'; // Import useLocation and useParams
+import { useState, useContext } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { AppContext } from '../store/app.context';
 import {
   Box,
@@ -18,143 +18,111 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import useFetchTeams from '../hooks/useFetchTeams';
+import useFetchUsers from '../hooks/useFetchUsers';
+import AddMemberDialog from '../components/AddMemberDialog';
 
 export default function Chats() {
   const { userData } = useContext(AppContext);
-  const [teams, setTeams] = useState([]);
-  const [members, setMembers] = useState([]); // State for team members
-  const [loading, setLoading] = useState(true);
+  const { teams, loading } = useFetchTeams();
+  const allUsers = useFetchUsers();
+  const [members, setMembers] = useState([]);
+  const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
+  const [newMember, setNewMember] = useState('');
   const navigate = useNavigate();
-  const location = useLocation(); // Get current URL
-  const { teamId } = useParams(); // Extract teamId using useParams
+  const location = useLocation();
+  const { teamId } = useParams();
   const [alignment, setAlignment] = useState('tabTeamsAndChat');
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      const teamsRef = ref(db, 'teams');
-      onValue(teamsRef, async (snapshot) => {
-        const teamsData = snapshot.val();
-        console.log('Fetched teams data:', teamsData); // Log fetched teams data
-        if (teamsData) {
-          const teamPromises = Object.entries(teamsData).map(
-            async ([teamId, team]) => {
-              const members = team.members || [];
-              const owner = team.owner || '';
-
-              // Filter channels the user belongs to or owns
-              const channelPromises = Object.entries(team.channels || {}).map(
-                async ([channelId, channelName]) => {
-                  const channelParticipantsRef = ref(
-                    db,
-                    `channels/${teamId}/${channelId}/participants`
-                  );
-                  const participantsSnapshot = await new Promise((resolve) =>
-                    onValue(
-                      channelParticipantsRef,
-                      (snap) => resolve(snap.val()),
-                      { onlyOnce: true }
-                    )
-                  );
-                  const participants = participantsSnapshot || [];
-                  console.log(`Participants for channel ${channelId}:`, participants); // Log participants
-                  if (participants.includes(userData?.handle) || owner === userData?.handle) {
-                    return { id: channelId, name: channelName };
-                  }
-                  return null;
-                }
-              );
-
-              const filteredChannels = (
-                await Promise.all(channelPromises)
-              ).filter((channel) => channel !== null);
-
-              console.log(`Filtered channels for team ${teamId}:`, filteredChannels); // Log filtered channels
-
-              // Return the team only if the user is a member or owner
-              if (
-                members.includes(userData?.handle) ||
-                owner === userData?.handle
-              ) {
-                return {
-                  id: teamId,
-                  name: team.teamName,
-                  owner: owner,
-                  members: members, // Add members to the team object
-                  channels: filteredChannels,
-                };
-              }
-              return null;
-            }
-          );
-
-          const filteredTeams = (await Promise.all(teamPromises)).filter(
-            (team) => team !== null
-          );
-          console.log('Filtered teams:', filteredTeams); // Log filtered teams
-          setTeams(filteredTeams);
-        } else {
-          setTeams([]);
-        }
-        setLoading(false);
-      });
-    };
-
-    fetchTeams();
-  }, [userData?.handle]);
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
 
-    // Update members when "Members" is selected
     if (newAlignment === 'tabMembers') {
       const currentTeam = teams.find((team) => team.id === teamId);
       setMembers(currentTeam?.members || []);
     }
   };
 
-  const handleKickMember = (memberToKick) => {
-    const teamRef = ref(db, `teams/${teamId}/members`);
-    onValue(teamRef, (snapshot) => {
-      const members = snapshot.val() || [];
-      const updatedMembers = members.filter(
-        (member) => member !== memberToKick
-      ); // Remove the kicked member
-      set(teamRef, updatedMembers); // Update the database with the new members list
+  const handleKickMember = async (memberToKick) => {
+    try {
+      const teamRef = ref(db, `teams/${teamId}/members`);
+      const snapshot = await new Promise((resolve) =>
+        onValue(teamRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+      );
+      const members = snapshot || [];
+      const updatedMembers = members.filter((member) => member !== memberToKick);
+      await set(teamRef, updatedMembers);
 
-      // Update the local state to reflect the change immediately
       setMembers((prevMembers) =>
         prevMembers.filter((member) => member !== memberToKick)
       );
-    });
 
-    // Remove the kicked member's access to the chat
-    const channelsRef = ref(db, `channels/${teamId}`);
-    onValue(channelsRef, (snapshot) => {
-      const channels = snapshot.val() || {};
-      Object.keys(channels).forEach((channelId) => {
-        const participantsRef = ref(
-          db,
-          `channels/${teamId}/${channelId}/participants`
+      const channelsRef = ref(db, `channels/${teamId}`);
+      const channelsSnapshot = await new Promise((resolve) =>
+        onValue(channelsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+      );
+      const channels = channelsSnapshot || {};
+      for (const channelId in channels) {
+        const participantsRef = ref(db, `channels/${teamId}/${channelId}/participants`);
+        const participantsSnapshot = await new Promise((resolve) =>
+          onValue(participantsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
         );
-        onValue(participantsRef, (participantsSnapshot) => {
-          const participants = participantsSnapshot.val() || [];
-          const updatedParticipants = participants.filter(
-            (participant) => participant !== memberToKick
-          );
-          set(participantsRef, updatedParticipants);
-        });
-      });
-    });
+        const participants = participantsSnapshot || [];
+        const updatedParticipants = participants.filter((participant) => participant !== memberToKick);
+        await set(participantsRef, updatedParticipants);
+      }
+    } catch (error) {
+      console.error('Error kicking member:', error);
+    }
   };
 
-  // Determine if the current URL matches the required pattern
-  const isTeamChannelURL = /^\/teams\/[^/]+\/channels\/[^/]+$/.test(
-    location.pathname
-  );
+  const handleAddMember = async () => {
+    try {
+      const teamRef = ref(db, `teams/${teamId}/members`);
+      const snapshot = await new Promise((resolve) =>
+        onValue(teamRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+      );
+      const members = snapshot || [];
+      if (!members.includes(newMember)) {
+        const updatedMembers = [...members, newMember];
+        await set(teamRef, updatedMembers);
+
+        setMembers(updatedMembers);
+
+        const channelsRef = ref(db, `channels/${teamId}`);
+        const channelsSnapshot = await new Promise((resolve) =>
+          onValue(channelsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+        );
+        const channels = channelsSnapshot || {};
+        for (const channelId in channels) {
+          const participantsRef = ref(db, `channels/${teamId}/${channelId}/participants`);
+          const participantsSnapshot = await new Promise((resolve) =>
+            onValue(participantsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+          );
+          const participants = participantsSnapshot || [];
+          if (!participants.includes(newMember)) {
+            const updatedParticipants = [...participants, newMember];
+            await set(participantsRef, updatedParticipants);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error adding member:', error);
+    }
+    setOpenAddMemberDialog(false);
+    setNewMember('');
+  };
+
+  const handleDialogClose = () => {
+    setOpenAddMemberDialog(false);
+    setNewMember('');
+  };
+
+  const isTeamChannelURL = /^\/teams\/[^/]+\/channels\/[^/]+$/.test(location.pathname);
 
   return (
     <Container
@@ -166,16 +134,14 @@ export default function Chats() {
         flexDirection: 'column',
         backgroundColor: 'gray.100',
         padding: 2,
-        height: 'calc(100vh - 64px)', // Subtract header height
+        height: 'calc(100vh - 64px)',
         overflow: 'auto',
         marginBottom: 3,
       }}
     >
-      {/* Show ToggleButtonGroup only if the URL matches */}
       {isTeamChannelURL && (
         <Stack spacing={2} sx={{ alignItems: 'center', width: '100%' }}>
           <ToggleButtonGroup
-            maxwidth
             color="primary"
             value={alignment}
             exclusive
@@ -188,7 +154,6 @@ export default function Chats() {
         </Stack>
       )}
 
-      {/* Header section */}
       <Box sx={{ flexShrink: 0 }}>
         <Typography
           variant="h4"
@@ -201,7 +166,7 @@ export default function Chats() {
         <Button
           variant="contained"
           color="primary"
-          sx={{ maxwidth: 200, mb: 2 }}
+          sx={{ maxWidth: 200, mb: 2 }}
           onClick={() => navigate('/new-team')}
         >
           New Chat
@@ -209,7 +174,7 @@ export default function Chats() {
         <Button
           variant="contained"
           color="secondary"
-          sx={{ maxwidth: 200, mb: 2, ml: 2 }}
+          sx={{ maxWidth: 200, mb: 2, ml: 2 }}
           onClick={() => navigate('/new-channel')}
         >
           New Channel
@@ -222,12 +187,11 @@ export default function Chats() {
           <Typography color="primary">Loading teams...</Typography>
         </Stack>
       ) : alignment === 'tabTeamsAndChat' ? (
-        // Teams & Chats view
         <Box
           sx={{
             flex: 1,
-            overflowY: 'auto', // Enable vertical scrolling
-            paddingRight: 1, // Add some padding for the scrollbar
+            overflowY: 'auto',
+            paddingRight: 1,
             '&::-webkit-scrollbar': {
               width: '8px',
             },
@@ -271,9 +235,7 @@ export default function Chats() {
                               label={channel.name}
                               size="small"
                               onClick={() =>
-                                navigate(
-                                  `/teams/${team.id}/channels/${channel.id}`
-                                )
+                                navigate(`/teams/${team.id}/channels/${channel.id}`)
                               }
                             />
                           ))
@@ -291,7 +253,6 @@ export default function Chats() {
           </Stack>
         </Box>
       ) : (
-        // Members view
         <Box
           sx={{
             flex: 1,
@@ -345,8 +306,28 @@ export default function Chats() {
               </Typography>
             )}
           </Stack>
+          {teams.find((team) => team.id === teamId)?.owner === userData?.handle && (
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{ mt: 2 }}
+              onClick={() => setOpenAddMemberDialog(true)}
+            >
+              Add Member
+            </Button>
+          )}
         </Box>
       )}
+
+      <AddMemberDialog
+        open={openAddMemberDialog}
+        onClose={handleDialogClose}
+        newMember={newMember}
+        setNewMember={setNewMember}
+        allUsers={allUsers}
+        members={members}
+        handleAddMember={handleAddMember}
+      />
     </Container>
   );
 }

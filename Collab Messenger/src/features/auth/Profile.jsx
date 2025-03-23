@@ -94,7 +94,7 @@ const Profile = ({ userId }) => {
     <Paper
       elevation={4}
       sx={{
-        maxwidth: 450,
+        maxWidth: 450,
         mx: "auto",
         p: 4,
         mt: 5,
