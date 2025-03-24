@@ -127,7 +127,6 @@ const MakeNewTeam = () => {
     const invalidMembers = memberList.filter(
       (member) => !users.includes(member)
     );
-    console.log(memberList);
     if (invalidMembers.length > 0) {
       setMemberError(`Invalid members: ${invalidMembers.join(', ')}`);
       return;

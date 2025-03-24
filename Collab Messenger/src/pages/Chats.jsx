@@ -20,11 +20,16 @@ import {
   AccordionDetails,
   ToggleButton,
   ToggleButtonGroup,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import useFetchTeams from '../hooks/useFetchTeams';
 import useFetchUsers from '../hooks/useFetchUsers';
 import AddMemberDialog from '../components/AddMemberDialog';
+import { createDirectChat } from '../components/DirectChat/CreateDirectChat';
 
 export default function Chats() {
   const { userData } = useContext(AppContext);
@@ -33,6 +38,7 @@ export default function Chats() {
   const [members, setMembers] = useState([]);
   const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
   const [newMember, setNewMember] = useState('');
+  const [selectedUser, setSelectedUser] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const { teamId } = useParams();
@@ -120,6 +126,21 @@ export default function Chats() {
   const handleDialogClose = () => {
     setOpenAddMemberDialog(false);
     setNewMember('');
+  };
+
+  const handleDirectChat = async () => {
+    try {
+      if (!selectedUser || !userData) {
+        console.error('Selected user or user data is missing');
+        return;
+      }
+    
+      const selectedUserData = { handle: selectedUser }; // Create a user object with the handle
+      const chatId = await createDirectChat(userData, selectedUserData);
+      navigate(`/chat/${chatId}`);
+    } catch (error) {
+      console.error('Error creating direct chat:', error);
+    }
   };
 
   const isTeamChannelURL = /^\/teams\/[^/]+\/channels\/[^/]+$/.test(location.pathname);
@@ -328,6 +349,47 @@ export default function Chats() {
         members={members}
         handleAddMember={handleAddMember}
       />
+
+      <Box sx={{ mt: 4 }}>
+        <FormControl fullWidth>
+          <InputLabel>Select User for Direct Chat</InputLabel>
+          <Select
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+            required
+            sx={{
+              backgroundColor: 'gray.600',
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: 'teal',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'teal',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'teal',
+                },
+              },
+            }}
+          >
+            {allUsers
+              .filter((user) => user !== userData.handle)
+              .map((user) => (
+                <MenuItem key={user} value={user}>
+                  {user}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+          onClick={handleDirectChat}
+        >
+          Start Direct Chat
+        </Button>
+      </Box>
     </Container>
   );
 }

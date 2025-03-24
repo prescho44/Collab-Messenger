@@ -7,7 +7,6 @@ export const createDirectChat = async (user1, user2) => {
     const chatId = newChatRef.key;
 
     const chat = {
-      chatName: `${user1.username} & ${user2.username}`,
       members: [user1.handle, user2.handle],
       createdOn: new Date().toString(),
       uid: chatId,

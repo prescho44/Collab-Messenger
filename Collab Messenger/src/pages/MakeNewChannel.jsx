@@ -41,7 +41,6 @@ const MakeNewChannel = () => {
             teamsList.push({ teamId, teamName: team.teamName || 'Unnamed Team' });
           }
         });
-        console.log(teamsList)
 
         setUserTeams(teamsList);
         if (teamsList.length > 0) {
@@ -62,7 +61,6 @@ const MakeNewChannel = () => {
           const teamData = snapshot.val();
           const membersList = teamData.members ? Object.values(teamData.members) : [];
           setTeamMembers(membersList);
-          console.log(teamRef)
 
         }
       };
@@ -123,7 +121,6 @@ const MakeNewChannel = () => {
         type: 'public',
       });
 
-      console.log('New channel created:', channelName);
       navigate(`/teams/${selectedTeamId}/channels/${newChannelId}`);
     } catch (error) {
       console.error('Error creating channel:', error);

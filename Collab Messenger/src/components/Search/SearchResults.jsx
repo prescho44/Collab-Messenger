@@ -26,7 +26,6 @@ const SearchResults = () => {
     const fetchResults = () => {
       if (!queryParam) return;
 
-      console.log('Fetching results for query:', queryParam); // Debug log
       setLoading(true);
       
       const usersRef = ref(db, 'users');
@@ -41,7 +40,6 @@ const SearchResults = () => {
             })).filter((user) => 
               user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())
             );
-            console.log('Fetched users:', users); // Debug log
             resolve(users);
           } else {
             resolve([]);
@@ -59,7 +57,6 @@ const SearchResults = () => {
             })).filter((team) =>
               team.name && team.name.toLowerCase().includes(queryParam.toLowerCase())
             );
-            console.log('Fetched teams:', teams); // Debug log
             resolve(teams);
           } else {
             resolve([]);
@@ -68,11 +65,10 @@ const SearchResults = () => {
       });
 
       Promise.all([fetchUsers, fetchTeams]).then(([users, teams]) => {
-        console.log('Combined results:', [...users, ...teams]); // Debug log
         setResults([...users, ...teams]);
         setLoading(false);
       }).catch((error) => {
-        console.error('Error fetching results:', error); // Debug log
+        console.error('Error fetching search results:', error.message);
         setLoading(false);
       });
     };
@@ -81,7 +77,6 @@ const SearchResults = () => {
   }, [queryParam]);
 
   const handleClick = (id, type) => {
-    console.log(`Navigating to ${type} with id: ${id}`); // Debug log
     if (type === 'user') {
       navigate(`/profile/${id}`);
     } else if (type === 'team') {

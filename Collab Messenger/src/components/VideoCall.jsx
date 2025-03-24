@@ -5,7 +5,6 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
     const [callFrame, setCallFrame] = useState(null);
     const callFrameRef = useRef(null);
 
-    console.log('Room URL:', roomUrl);
 
     useEffect(() => {
         const container = document.getElementById('videoContainer');
@@ -26,13 +25,11 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
             });
             setCallFrame(frame);
             callFrameRef.current = frame;
-            console.log('DailyIframe created:', frame);
         }
     }, []);
 
     useEffect(() => {
         if (callFrame && typeof roomUrl === 'string') {
-            console.log('Joining room with URL:', roomUrl);
             callFrame.join({ url: roomUrl })
                 .then(() => {
                     console.log('Joined room successfully');
@@ -46,7 +43,6 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
 
         return () => {
             if (callFrame) {
-                console.log('Destroying call frame');
                 callFrame.destroy();
             }
         };

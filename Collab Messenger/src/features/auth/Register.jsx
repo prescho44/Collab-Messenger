@@ -145,10 +145,8 @@ export default function Register() {
       }
 
       const userCredential = await registerUser(user.email, user.password);
-      console.log('User registered:', userCredential.user.uid);
 
       const photoURL = await uploadImage(userCredential.user.uid);
-      console.log('Photo uploaded:', photoURL);
 
       await createUserHandle(
         user.handle,

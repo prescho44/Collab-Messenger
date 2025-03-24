@@ -16,8 +16,7 @@ const DirectChat = () => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    console.log('DirectChat component mounted');
-    console.log('Setting up messages listener for chatId:', chatId);
+
     const messagesRef = ref(db, `messages/${chatId}`);
     const listener = onValue(messagesRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -29,28 +28,22 @@ const DirectChat = () => {
             timestamp: new Date(message.timestamp),
           })
         );
-        console.log('Fetched messages:', messagesList);
         setMessages(messagesList);
       }else{
-        console.log('No messages found');
         setMessages([]);
       }
       setLoading(false);
-      console.log('Loading state set to false');
     }, (error) => {
       console.error('Error fetching messages:', error.message);
       setLoading(false);
-      console.log('Loading state set to false due to error');
     });
 
     return () => {
-      console.log('Cleaning up messages listener for chatId:', chatId);
       off(messagesRef, listener);
     };
   }, [chatId]);
 
 useEffect(() => {
-  console.log('Messages updated, scrolling to bottom');
   messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [chatId]);
 
@@ -59,7 +52,6 @@ const handleSendMessage = async () => {
   if (newMessage.trim() === '') return;
 
   try {
-    console.log('Sending message:', newMessage);
     const messageRef = push(ref(db, `messages/${chatId}`));
     const message = {
       content: newMessage,
@@ -68,7 +60,6 @@ const handleSendMessage = async () => {
     };
 
     await update(messageRef, message);
-    console.log('Message sent:', message);
     setNewMessage('');
   } catch (error) {
     console.error('Error sending message:', error.message);
@@ -80,11 +71,9 @@ const handleSendMessage = async () => {
       <Typography variant="h4" gutterBottom>
         Direct Chat
       </Typography>
-      {console.log('Rendering component with loading state:', loading)}
       {loading ? (
         <>
         <CircularProgress sx={{ display: 'block', margin: '20px auto' }} />
-        {console.log('Loading state is true, showing CircularProgress')}
         </>
       ) : (
         <>

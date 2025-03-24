@@ -33,9 +33,10 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
             key={message.id}
             sx={{
               p: 2,
-              maxwidth: '70%',
-              alignSelf: message.sender === user.uid ? 'flex-end' : 'flex-start',
-              bgcolor: message.sender === user.uid ? 'primary.dark' : 'background.paper',
+              maxWidth: '70%',
+              alignSelf: message.sender === user.handle ? 'flex-end' : 'flex-start',
+              bgcolor: message.sender === user.handle ? 'primary.dark' : 'background.paper',
+              color: message.sender === user.handle ? 'white' : 'white',
             }}
             elevation={8}
           >
@@ -44,7 +45,7 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
               <Box>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Typography variant="subtitle2" color="text.secondary">
-                    {message.senderName || 'Unknown User'}
+                    {message.sender || 'Unknown User'}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {formatTime(message.timestamp)}
@@ -68,7 +69,7 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
                 </Stack>
                 <Typography variant="body1">{message.content}</Typography>
                 {message.gifUrl && (
-                  <img src={message.gifUrl} alt="GIF" style={{ maxwidth: '100%', borderRadius: '8px', marginTop: '8px' }} />
+                  <img src={message.gifUrl} alt="GIF" style={{ maxWidth: '100%', borderRadius: '8px', marginTop: '8px' }} />
                 )}
                 {message.reactions && (
                   <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>

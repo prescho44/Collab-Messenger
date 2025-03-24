@@ -24,7 +24,7 @@ import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
 import Friends from './features/auth/Friends';
 import MakeNewChannel from './pages/MakeNewChannel';
-import DirectChat from './components/DirectChat/DirectChat';
+import DirectChatView from './pages/DirectChatView';
 
 const AppContent = () => {
   const location = useLocation();
@@ -47,7 +47,6 @@ const AppContent = () => {
 
   useEffect(() => {
     if (user && !appState.userData) {
-      console.log('userId:', user.uid);
       getUserData(user.uid)
         .then((data) => {
           setAppState((prev) => ({
@@ -82,11 +81,10 @@ const AppContent = () => {
     );
   }
 
-  const isInChatView = location.pathname.includes('/teams/') ;
+  const isInChatView = location.pathname.includes('/teams/') || location.pathname.includes('/chat/'); ;
 
   return (
     <AppContext.Provider value={{ ...appState, setAppState }}>
-      {console.log('AppContext Provider value:', { ...appState, setAppState })}
       <Box
         sx={{
           minHeight: '100vh',
@@ -108,7 +106,7 @@ const AppContent = () => {
             <Route path="/edit-profile" element={<EditProfile />} />
             <Route path="/friends" element={<Friends />} />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/chat/:chatId" element={<DirectChat />} />
+            <Route path="/chat/:chatId" element={<DirectChatView />} />
             <Route path="/new-team" element={<MakeNewTeam />} />
             <Route path="/new-channel" element={<MakeNewChannel />} />
             <Route path="/video-call" element={<VideoCall />} />
