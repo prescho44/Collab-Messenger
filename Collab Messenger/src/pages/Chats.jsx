@@ -384,7 +384,7 @@ export default function Chats() {
         <Button
           variant="contained"
           color="primary"
-          sx={{ mt: 2 }}
+          sx={{ mt: 3, px: 4 , }}
           onClick={handleDirectChat}
         >
           Start Direct Chat

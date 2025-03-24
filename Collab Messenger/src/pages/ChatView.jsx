@@ -41,13 +41,16 @@ const ChatView = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [channelName, setChannelName] = useState('');
   const navigate = useNavigate();
   const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
+  const channelRef = ref(db, `channels/${teamId}/${channelId}`);
 
   useEffect(() => {
     if (!teamId || !channelId) return;
 
-    const unsubscribe = onValue(messagesRef, (snapshot) => {
+    const unsubscribeMessages = onValue(messagesRef, (snapshot) => {
       if (snapshot.exists()) {
         const messagesData = snapshot.val();
         const messagesList = Object.entries(messagesData).map(
@@ -81,7 +84,17 @@ const ChatView = () => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const unsubscribeChannel = onValue(channelRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const channelData = snapshot.val();
+        setChannelName(channelData.title);
+      }
+    });
+
+    return () => {
+      unsubscribeMessages();
+      unsubscribeChannel();
+    };
   }, [teamId, channelId, user.uid]);
 
   const handleSendMessage = async (content, gifUrl, type) => {
@@ -292,6 +305,14 @@ const ChatView = () => {
     }
   };
 
+  const handleMenuOpen = (event) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const closeMenu = () => {
+    setMenuAnchorEl(null);
+  };
+
   if (loading) {
     return (
       <Box
@@ -308,7 +329,7 @@ const ChatView = () => {
   return (
     <Box
       sx={{
-        height: 'calc(100vh - 64px)', // Subtract header height
+        height: 'calc(100vh - 64px)',
         overflow: 'hidden',
         display: 'flex',
       }}
@@ -318,7 +339,7 @@ const ChatView = () => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          width: '26.75%',
+          width: '20%',
           ml: 3,
           overflowY: 'auto',
           overflowX: 'hidden',
@@ -342,7 +363,7 @@ const ChatView = () => {
           }}
         >
           <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
-            <Typography variant="h6">{channelId}</Typography>
+            <Typography variant="h6">{channelName}</Typography>
           </Box>
           <IconButton
             sx={{ marginInline: 1 }}
@@ -351,18 +372,21 @@ const ChatView = () => {
           >
             <VideoCallIcon />
           </IconButton>
-          <Stack direction="row" spacing={2}>
-            <Button
-              color="error"
-              variant="outlined"
-              onClick={handleLeaveChannel}
-            >
-              Leave Channel
-            </Button>
-            <Button color="error" variant="contained" onClick={handleLeaveTeam}>
-              Leave Team
-            </Button>
-          </Stack>
+          <IconButton
+            sx={{ marginInline: 1 }}
+            color="primary"
+            onClick={handleMenuOpen}
+          >
+            <MoreHorizIcon />
+          </IconButton>
+          <Menu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={closeMenu}
+          >
+            <MenuItem onClick={handleLeaveChannel}>Leave Channel</MenuItem>
+            <MenuItem onClick={handleLeaveTeam}>Leave Team</MenuItem>
+          </Menu>
         </Box>
 
         <MessageList

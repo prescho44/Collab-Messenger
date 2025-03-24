@@ -54,8 +54,12 @@ export default function Header() {
         >
           Collab
         </Typography>
+        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '40%', minWidth: '300px' }}>
+            <Search />
+          </Box>
+        </Box>
 
-        <Search />
 
         <Box>
           {!user ? (
@@ -83,12 +87,17 @@ export default function Header() {
             </>
           ) : (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton>
+              <IconButton sx={{
+                  bgcolor: 'inherit',
+                  borderRadius: 2,
+                  padding: 1,
+                  '&:hover': { bgcolor: 'inherit' },
+                  mr: 2,
+                }}>
               <Notifications />
               </IconButton>
               <IconButton
                 onClick={toggleTheme}
-                color="inherit"
                 sx={{
                   bgcolor: 'inherit',
                   borderRadius: 2,
@@ -101,7 +110,6 @@ export default function Header() {
               </IconButton>
               <IconButton
                 onClick={() => navigate(`/profile/${user.uid}`)}
-                color="inherit"
                 sx={{
                   bgcolor: 'inherit',
                   borderRadius: 2,
@@ -114,7 +122,6 @@ export default function Header() {
               </IconButton>
               <IconButton
                 onClick={handleFriendsClick}
-                color="inherit"
                 sx={{
                   bgcolor: 'inherit',
                   borderRadius: 2,
@@ -127,7 +134,6 @@ export default function Header() {
               </IconButton>
               <IconButton
                 onClick={logout}
-                color="inherit"
                 sx={{
                   bgcolor: 'inherit',
                   borderRadius: 2,

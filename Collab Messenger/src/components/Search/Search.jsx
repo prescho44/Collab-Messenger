@@ -24,7 +24,7 @@ const Search = () => {
   return (
     <Paper
       component="form"
-      sx={{ display: 'flex', alignItems: 'center', width: 400, padding: '2px 4px' }}
+      sx={{ display: 'flex', alignItems: 'center', width: 800, padding: '2px 4px'  }}
       onSubmit={handleSearch}
     >
       <InputBase

@@ -70,7 +70,7 @@ const DirectChatView = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          width: "26.75%",
+          width: "20%",
           ml: 3,
           overflowY: "auto",
           overflowX: "hidden",
