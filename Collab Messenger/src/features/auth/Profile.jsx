@@ -1,7 +1,7 @@
-import { useEffect, useState, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { getUserData } from "../../services/user.service";
-import { createDirectChat } from "../../components/DirectChat/CreateDirectChat";
+import { useEffect, useState, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getUserData } from '../../services/user.service';
+import { createDirectChat } from '../../components/DirectChat/CreateDirectChat';
 import {
   Avatar,
   Box,
@@ -9,34 +9,34 @@ import {
   CircularProgress,
   Button,
   Paper,
-} from "@mui/material";
-import { AppContext } from "../../store/app.context";
-import { db } from "../../configs/firebaseConfig";
-import { ref, update } from "firebase/database";
+} from '@mui/material';
+import { AppContext } from '../../store/app.context';
+import { db } from '../../configs/firebaseConfig';
+import { ref, set } from 'firebase/database';
 
 const Profile = ({ userId }) => {
   const { uid } = useParams();
   const navigate = useNavigate();
-  const { userData: currentUserData } = useContext(AppContext);
-  const [userData, setUserData] = useState(null);
+  const { userData } = useContext(AppContext);
+  const [otherUserData, setOtherUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editedData, setEditedData] = useState({});
   const [sendMessageLoading, setSendMessageLoading] = useState(false);
 
   useEffect(() => {
     if (!uid) {
-      console.error("No uid provided");
+      console.error('No uid provided');
       setLoading(false);
       return;
     }
 
     getUserData(uid)
       .then((data) => {
-        setUserData(data);
+        setOtherUserData(data);
         setEditedData(data);
       })
       .catch((error) => {
-        console.error("Error fetching user data:", error);
+        console.error('Error fetching user data:', error);
       })
       .finally(() => {
         setLoading(false);
@@ -47,40 +47,59 @@ const Profile = ({ userId }) => {
     e.preventDefault();
     setSendMessageLoading(true);
     try {
-      const chatId = await createDirectChat(currentUserData, userData);
+      const chatId = await createDirectChat(userData, otherUserData);
       navigate(`/chat/${chatId}`);
     } catch (error) {
-      console.error("Error creating direct chat:", error.message);
+      console.error('Error creating direct chat:', error.message);
     } finally {
       setSendMessageLoading(false);
     }
   };
 
   const handleInviteToTeam = () => {
-    console.log("Invite to Team clicked");
+    console.log('Invite to Team clicked');
   };
 
   const handleAddFriend = async () => {
-    const userRef = ref(
+    const currentUserFriendsRef = ref(
       db,
-      `users/${currentUserData.uid}/friends/${userData.uid}`
+      `users/${userData.handle}/friends/${otherUserData.handle}`
     );
-    await update(userRef, {
+    await set(currentUserFriendsRef, {
+      uid: otherUserData.uid,
+      handle: otherUserData.handle,
+      email: otherUserData.email,
+      photo: otherUserData.photo || '/src/assets/default-avatar.jpg',
+      status: otherUserData.status || 'Online',
+      friendAccepted: false,
+      requestFrom: userData.handle,
+    });
+
+    const otherUserFriendsRef = ref(
+      db,
+      `users/${otherUserData.handle}/friends/${userData.handle}`
+    );
+
+    await set(otherUserFriendsRef, {
       uid: userData.uid,
-      username: userData.username,
+      handle: userData.handle,
       email: userData.email,
+      photo: userData.photo || '/src/assets/default-avatar.jpg',
+      status: userData.status || 'Online',
+      friendAccepted: false,
+      requestFrom: userData.handle,
     });
   };
 
   const handleEditProfile = () => {
-    navigate("/edit-profile");
+    navigate('/edit-profile');
   };
 
   if (loading) {
-    return <CircularProgress sx={{ display: "block", margin: "20px auto" }} />;
+    return <CircularProgress sx={{ display: 'block', margin: '20px auto' }} />;
   }
 
-  if (!userData) {
+  if (!otherUserData) {
     return (
       <Typography variant="h6" align="center">
         No user data available
@@ -95,34 +114,34 @@ const Profile = ({ userId }) => {
       elevation={4}
       sx={{
         maxWidth: 450,
-        mx: "auto",
+        mx: 'auto',
         p: 4,
         mt: 5,
-        textAlign: "center",
+        textAlign: 'center',
         borderRadius: 3,
       }}
     >
       <Avatar
-        alt={userData.handle}
-        src={userData.photo || editedData.photo}
-        sx={{ width: 120, height: 120, margin: "auto", mb: 2 }}
+        alt={otherUserData.handle}
+        src={otherUserData.photo || editedData.photo}
+        sx={{ width: 120, height: 120, margin: 'auto', mb: 2 }}
       />
       <Typography variant="h4" mt={2}>
-        {userData.username}
+        {otherUserData.username}
       </Typography>
       <Typography variant="body2" mt={1}>
-        {userData.email}
+        {otherUserData.email}
       </Typography>
       <Typography variant="body2" mt={1}>
-        {userData.handle}
+        {otherUserData.handle}
       </Typography>
       <Typography variant="body2" mt={1}>
-        {userData.phoneNumber}
+        {otherUserData.phoneNumber}
       </Typography>
 
       {/* Displaying Status */}
       <Typography variant="body2" mt={1} color="textSecondary">
-        Status: {userData.status || "No status set"}
+        Status: {otherUserData.status || 'No status set'}
       </Typography>
 
       {isOwnProfile ? (
@@ -147,7 +166,7 @@ const Profile = ({ userId }) => {
             {sendMessageLoading ? (
               <CircularProgress size={24} />
             ) : (
-              "Send Message"
+              'Send Message'
             )}
           </Button>
           <Button
