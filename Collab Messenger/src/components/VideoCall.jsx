@@ -1,10 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import DailyIframe from '@daily-co/daily-js';
+import { useNavigate } from 'react-router-dom';
+import { db } from '../configs/firebaseConfig';
+import { ref, push, update } from 'firebase/database';
 
-export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531JiHMY" }) => {
+export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531JiHMY", teamId, chatId, userData }) => {
     const [callFrame, setCallFrame] = useState(null);
     const callFrameRef = useRef(null);
+    const navigate = useNavigate();
 
+    console.log("VideoCall - roomUrl:", roomUrl);
+    console.log("VideoCall - teamId:", teamId);
+    console.log("VideoCall - chatId:", chatId);
+    console.log("VideoCall - userData:", userData);
 
     useEffect(() => {
         const container = document.getElementById('videoContainer');
@@ -33,6 +41,7 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
             callFrame.join({ url: roomUrl })
                 .then(() => {
                     console.log('Joined room successfully');
+                    handleVideoCallStart();
                 })
                 .catch((error) => {
                     console.error('Error joining room:', error);
@@ -43,10 +52,40 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
 
         return () => {
             if (callFrame) {
+                handleVideoCallEnd();
                 callFrame.destroy();
             }
         };
     }, [callFrame, roomUrl]);
+
+    const handleVideoCallStart = async () => {
+        if (!userData || !userData.handle) {
+            console.error('User data or handle is undefined');
+            return;
+        }
+        const messageRef = push(ref(db, `channels/${teamId}/${chatId}/messages`));
+        const message = {
+            content: "Video call started",
+            sender: userData.handle,
+            timestamp: new Date().toISOString(),
+        };
+        await update(messageRef, message);
+    };
+
+    const handleVideoCallEnd = async () => {
+        if (!userData || !userData.handle) {
+            console.error('User data or handle is undefined');
+            return;
+        }
+        const messageRef = push(ref(db, `channels/${teamId}/${chatId}/messages`));
+        const message = {
+            content: "Video call ended",
+            sender: userData.handle,
+            timestamp: new Date().toISOString(),
+        };
+        await update(messageRef, message);
+        navigate('/');
+    };
 
     return (
         <div id='videoContainer' className="relative w-full h-full" style={{ backgroundColor: 'black', position: 'fixed', top: 0, left: 0, zIndex: 1000 }}>

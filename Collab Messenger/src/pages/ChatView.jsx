@@ -1,6 +1,6 @@
-import { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../configs/firebaseConfig';
+import { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { db } from "../configs/firebaseConfig";
 import {
   ref,
   onValue,
@@ -10,8 +10,8 @@ import {
   remove,
   get,
   off,
-} from 'firebase/database';
-import { AppContext } from '../store/app.context';
+} from "firebase/database";
+import { AppContext } from "../store/app.context";
 import {
   Box,
   Typography,
@@ -23,14 +23,14 @@ import {
   Button,
   IconButton,
   Divider,
-} from '@mui/material';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import VideoCallIcon from '@mui/icons-material/VideoCall';
-import Chats from './Chats';
-import Picker from 'emoji-picker-react';
-import { ThemeContext } from '../store/theme.context';
-import MessageInput from '../components/Messages/MessageInput';
-import MessageList from '../components/Messages/MessageList';
+} from "@mui/material";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import VideoCallIcon from "@mui/icons-material/VideoCall";
+import Chats from "./Chats";
+import Picker from "emoji-picker-react";
+import { ThemeContext } from "../store/theme.context";
+import MessageInput from "../components/Messages/MessageInput";
+import MessageList from "../components/Messages/MessageList";
 
 const ChatView = () => {
   const { teamId, channelId } = useParams();
@@ -39,10 +39,11 @@ const ChatView = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-  const [channelName, setChannelName] = useState('');
+  const [channelName, setChannelName] = useState("");
   const navigate = useNavigate();
   const messagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
   const channelRef = ref(db, `channels/${teamId}/${channelId}`);
@@ -91,9 +92,18 @@ const ChatView = () => {
       }
     });
 
+    const teamRef = ref(db, `teams/${teamId}`);
+    const unsubscribeTeam = onValue(teamRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const teamData = snapshot.val();
+        setIsOwner(teamData.owner === userData.handle);
+      }
+    });
+
     return () => {
       unsubscribeMessages();
       unsubscribeChannel();
+      unsubscribeTeam();
     };
   }, [teamId, channelId, user.uid]);
 
@@ -117,7 +127,7 @@ const ChatView = () => {
         },
       });
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     }
   };
 
@@ -134,8 +144,8 @@ const ChatView = () => {
   const handleEditMessage = async () => {
     if (!selectedMessage) return;
 
-    const newContent = prompt('Edit your message:', selectedMessage.content);
-    if (newContent === null || newContent.trim() === '') return;
+    const newContent = prompt("Edit your message:", selectedMessage.content);
+    if (newContent === null || newContent.trim() === "") return;
 
     try {
       const messageRef = ref(
@@ -148,7 +158,7 @@ const ChatView = () => {
       });
       handleMenuClose();
     } catch (error) {
-      console.error('Error editing message:', error);
+      console.error("Error editing message:", error);
     }
   };
 
@@ -163,7 +173,7 @@ const ChatView = () => {
       await remove(messageRef);
       handleMenuClose();
     } catch (error) {
-      console.error('Error deleting message:', error);
+      console.error("Error deleting message:", error);
     }
   };
 
@@ -216,7 +226,7 @@ const ChatView = () => {
         });
       }
     } catch (error) {
-      console.error('Error updating reaction:', error);
+      console.error("Error updating reaction:", error);
     }
 
     setEmojiAnchorEl(null);
@@ -225,14 +235,14 @@ const ChatView = () => {
 
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const handleLeaveChannel = async () => {
     const userConfirmed = window.confirm(
-      'Are you sure you want to leave this channel?'
+      "Are you sure you want to leave this channel?"
     );
 
     if (!userConfirmed) return;
@@ -255,15 +265,15 @@ const ChatView = () => {
       // Remove the listener for the messages in this channel
       off(messagesRef);
 
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Error leaving channel:', error);
+      console.error("Error leaving channel:", error);
     }
   };
 
   const handleLeaveTeam = async () => {
     const userConfirmed = window.confirm(
-      'Are you sure you want to leave this team? This will remove you from the team and all its channels.'
+      "Are you sure you want to leave this team? This will remove you from the team and all its channels."
     );
 
     if (!userConfirmed) return;
@@ -271,10 +281,14 @@ const ChatView = () => {
     try {
       const teamMembersRef = ref(db, `teams/${teamId}/members`);
       const teamMembersSnapshot = await new Promise((resolve) =>
-        onValue(teamMembersRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+        onValue(teamMembersRef, (snap) => resolve(snap.val()), {
+          onlyOnce: true,
+        })
       );
       const teamMembers = teamMembersSnapshot || [];
-      const updatedTeamMembers = teamMembers.filter((member) => member !== userData.handle);
+      const updatedTeamMembers = teamMembers.filter(
+        (member) => member !== userData.handle
+      );
       await set(teamMembersRef, updatedTeamMembers);
 
       // Remove user from all channels in the team
@@ -284,27 +298,74 @@ const ChatView = () => {
       );
       const channels = channelsSnapshot || {};
       for (const channelId in channels) {
-        const participantsRef = ref(db, `channels/${teamId}/${channelId}/participants`);
+        const participantsRef = ref(
+          db,
+          `channels/${teamId}/${channelId}/participants`
+        );
         const participantsSnapshot = await new Promise((resolve) =>
-          onValue(participantsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+          onValue(participantsRef, (snap) => resolve(snap.val()), {
+            onlyOnce: true,
+          })
         );
         const participants = participantsSnapshot || [];
-        const updatedParticipants = participants.filter((participant) => participant !== userData.uid);
+        const updatedParticipants = participants.filter(
+          (participant) => participant !== userData.uid
+        );
         await set(participantsRef, updatedParticipants);
 
         // Remove the listener for the messages in this channel
-        const channelMessagesRef = ref(db, `channels/${teamId}/${channelId}/messages`);
+        const channelMessagesRef = ref(
+          db,
+          `channels/${teamId}/${channelId}/messages`
+        );
         off(channelMessagesRef);
       }
 
       // Update local state
       setMessages([]);
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Error leaving team:', error);
+      console.error("Error leaving team:", error);
     }
   };
 
+  const handleDeleteTeam = async () => {
+    const userConfirmed = window.confirm(
+      "Are you sure you want to delete this team? This action cannot be undone."
+    );
+
+    if (!userConfirmed) return;
+    try {
+      // Delete all channels in the team
+      const channelsRef = ref(db, `channels/${teamId}`);
+      const channelsSnapshot = await get(channelsRef);
+      if (channelsSnapshot.exists()) {
+        const channels = channelsSnapshot.val();
+        for (const channelId in channels) {
+          const channelMessagesRef = ref(
+            db,
+            `channels/${teamId}/${channelId}/messages`
+          );
+          await remove(channelMessagesRef);
+          const participantsRef = ref(
+            db,
+            `channels/${teamId}/${channelId}/participants`
+          );
+          await remove(participantsRef);
+          await remove(ref(db, `channels/${teamId}/${channelId}`));
+        }
+      }
+
+      // Delete the team
+      const teamRef = ref(db, `teams/${teamId}`);
+      await remove(teamRef);
+
+      // Navigate to the home page
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting team:", error);
+    }
+  };
   const handleMenuOpen = (event) => {
     setMenuAnchorEl(event.currentTarget);
   };
@@ -329,46 +390,46 @@ const ChatView = () => {
   return (
     <Box
       sx={{
-        height: 'calc(100vh - 64px)',
-        overflow: 'hidden',
-        display: 'flex',
+        height: "calc(100vh - 64px)",
+        overflow: "hidden",
+        display: "flex",
       }}
     >
       {/* Sidebar - Chats Component */}
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '20%',
+          display: "flex",
+          flexDirection: "column",
+          width: "20%",
           ml: 3,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          overflow: 'height',
+          overflowY: "auto",
+          overflowX: "hidden",
+          overflow: "height",
         }}
       >
         <Chats />
       </Box>
 
       {/* Main Chat Area */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Box
           sx={{
             p: 2,
-            bgcolor: 'background.paper',
+            bgcolor: "background.paper",
             borderBottom: 1,
-            borderColor: 'divider',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            borderColor: "divider",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
+          <Box sx={{ flexGrow: 1, textAlign: "center" }}>
             <Typography variant="h6">{channelName}</Typography>
           </Box>
           <IconButton
             sx={{ marginInline: 1 }}
             color="primary"
-            onClick={() => navigate('/video-call')}
+            onClick={() => navigate("/video-call/" + teamId + "/" + channelId)}
           >
             <VideoCallIcon />
           </IconButton>
@@ -384,8 +445,23 @@ const ChatView = () => {
             open={Boolean(menuAnchorEl)}
             onClose={closeMenu}
           >
-            <MenuItem onClick={handleLeaveChannel}>Leave Channel</MenuItem>
-            <MenuItem onClick={handleLeaveTeam}>Leave Team</MenuItem>
+            {isOwner
+              ? [
+                  <MenuItem key="leave-channel" onClick={handleLeaveChannel}>
+                    Leave Channel
+                  </MenuItem>,
+                  <MenuItem key="delete-team" onClick={handleDeleteTeam}>
+                    Delete Team
+                  </MenuItem>,
+                ]
+              : [
+                  <MenuItem key="leave-channel" onClick={handleLeaveChannel}>
+                    Leave Channel
+                  </MenuItem>,
+                  <MenuItem key="leave-team" onClick={handleLeaveTeam}>
+                    Leave Team
+                  </MenuItem>,
+                ]}
           </Menu>
         </Box>
 
@@ -400,6 +476,7 @@ const ChatView = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleMenuClose}
+          
         >
           {selectedMessage?.sender === user.uid ? (
             <>
@@ -416,17 +493,17 @@ const ChatView = () => {
           anchorEl={emojiAnchorEl}
           onClose={() => setEmojiAnchorEl(null)}
           anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
+            vertical: "bottom",
+            horizontal: "center",
           }}
           transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
+            vertical: "top",
+            horizontal: "center",
           }}
         >
           <Picker
             reactionsDefaultOpen={true}
-            theme={themeMode === 'dark' ? 'dark' : 'light'}
+            theme={themeMode === "dark" ? "dark" : "light"}
             emojiStyle="native"
             skinTonePickerLocation="none"
             onReactionClick={handleEmojiSelect}
@@ -438,7 +515,10 @@ const ChatView = () => {
 
         <Divider />
 
-        <MessageInput handleSendMessage={handleSendMessage} themeMode={themeMode} />
+        <MessageInput
+          handleSendMessage={handleSendMessage}
+          themeMode={themeMode}
+        />
       </Box>
     </Box>
   );

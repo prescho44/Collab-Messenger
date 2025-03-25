@@ -18,7 +18,7 @@ import MakeNewTeam from './pages/MakeNewTeam';
 import ChatView from './pages/ChatView';
 import Footer from './components/Footer';
 import { Box, CircularProgress } from '@mui/material';
-import VideoCall from './components/VideoCall';
+import VideoCallView from './pages/VideoCallView';
 import { ToastContainer } from 'react-toastify';
 import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
@@ -81,7 +81,7 @@ const AppContent = () => {
     );
   }
 
-  const isInChatView = location.pathname.includes('/teams/') || location.pathname.includes('/chat/'); ;
+  const isInChatView = location.pathname.includes('/teams/') || location.pathname.includes('/chat/');
 
   return (
     <AppContext.Provider value={{ ...appState, setAppState }}>
@@ -109,7 +109,7 @@ const AppContent = () => {
             <Route path="/chat/:chatId" element={<DirectChatView />} />
             <Route path="/new-team" element={<MakeNewTeam />} />
             <Route path="/new-channel" element={<MakeNewChannel />} />
-            <Route path="/video-call" element={<VideoCall />} />
+            <Route path="/video-call/:teamId/:chatId" element={<VideoCallView />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { AppContext } from "../../store/app.context";
 import { db } from "../../configs/firebaseConfig";
-import { ref, update } from "firebase/database";
+import { ref, update, get } from "firebase/database";
 import {
   Box,
   TextField,
@@ -22,7 +22,7 @@ import { uploadAvatar } from "../../services/storage.service";
 import { useNavigate } from "react-router-dom";
 
 const EditProfile = () => {
-  const { userData } = useContext(AppContext);
+  const { userData, setAppState } = useContext(AppContext);
   const navigate = useNavigate();
 
   // State
@@ -75,7 +75,72 @@ const EditProfile = () => {
       await update(userRef, updates);
     }
 
+    // Update references in teams and channels
+    await updateReferences(userData.handle, handle);
+
+    // Update local state
+    setAppState((prev) => ({
+      ...prev,
+      userData: {
+        ...prev.userData,
+        ...updates,
+      },
+    }));
+
     navigate(`/profile/${userData.uid}`);
+  };
+
+  const updateReferences = async (oldHandle, newHandle) => {
+    // Update teams
+    const teamsRef = ref(db, 'teams');
+    const teamsSnapshot = await get(teamsRef);
+    if (teamsSnapshot.exists()) {
+      const teams = teamsSnapshot.val();
+      for (const teamId in teams) {
+        const team = teams[teamId];
+        if (team.members && team.members.includes(oldHandle)) {
+          const updatedMembers = team.members.map((member) =>
+            member === oldHandle ? newHandle : member
+          );
+          await update(ref(db, `teams/${teamId}/members`), updatedMembers);
+        }
+        if (team.owner === oldHandle) {
+          await update(ref(db, `teams/${teamId}`), { owner: newHandle });
+        }
+      }
+    }
+
+    // Update channels
+    const channelsRef = ref(db, 'channels');
+    const channelsSnapshot = await get(channelsRef);
+    if (channelsSnapshot.exists()) {
+      const channels = channelsSnapshot.val();
+      for (const channelId in channels) {
+        const channel = channels[channelId];
+        if (channel.participants && channel.participants.includes(oldHandle)) {
+          const updatedParticipants = channel.participants.map((participant) =>
+            participant === oldHandle ? newHandle : participant
+          );
+          await update(ref(db, `channels/${channel.teamId}/${channelId}/participants`), updatedParticipants);
+        }
+      }
+    }
+
+    // Update direct chats
+    const chatsRef = ref(db, 'chats');
+    const chatsSnapshot = await get(chatsRef);
+    if (chatsSnapshot.exists()) {
+      const chats = chatsSnapshot.val();
+      for (const chatId in chats) {
+        const chat = chats[chatId];
+        if (chat.members && chat.members.includes(oldHandle)) {
+          const updatedMembers = chat.members.map((member) =>
+            member === oldHandle ? newHandle : member
+          );
+          await update(ref(db, `chats/${chatId}`), { members: updatedMembers });
+        }
+      }
+    }
   };
 
   const handleProfilePictureChange = (e) => {

@@ -1,8 +1,8 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { AppContext } from '../store/app.context';
-import { db } from '../configs/firebaseConfig';
-import { ref, set, push, get } from 'firebase/database';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useContext, useEffect } from "react";
+import { AppContext } from "../store/app.context";
+import { db } from "../configs/firebaseConfig";
+import { ref, set, push, get } from "firebase/database";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -12,17 +12,17 @@ import {
   Alert,
   Chip,
   Autocomplete,
-} from '@mui/material';
+} from "@mui/material";
 
 const MakeNewTeam = () => {
   const { user, userData } = useContext(AppContext);
 
-  const [teamName, setTeamName] = useState('');
-  const [channelName, setChannelName] = useState('');
-  const [members, setMembers] = useState(' ');
-  const [error, setError] = useState('');
+  const [teamName, setTeamName] = useState("");
+  const [channelName, setChannelName] = useState("");
+  const [members, setMembers] = useState("");
+  const [error, setError] = useState("");
   const [users, setUsers] = useState([]);
-  const [memberError, setMemberError] = useState('');
+  const [memberError, setMemberError] = useState("");
   const [existingTeamNames, setExistingTeamNames] = useState([]);
 
   const navigate = useNavigate(); // Use navigate hook
@@ -30,7 +30,7 @@ const MakeNewTeam = () => {
   useEffect(() => {
     // Fetch users from Firebase
     const fetchUsers = async () => {
-      const usersRef = ref(db, 'users');
+      const usersRef = ref(db, "users");
       const snapshot = await get(usersRef);
       if (snapshot.exists()) {
         const usersData = snapshot.val();
@@ -41,11 +41,13 @@ const MakeNewTeam = () => {
 
     // Fetch existing team names from Firebase
     const fetchTeamNames = async () => {
-      const teamsRef = ref(db, 'teams');
+      const teamsRef = ref(db, "teams");
       const snapshot = await get(teamsRef);
       if (snapshot.exists()) {
         const teamsData = snapshot.val();
-        const teamNamesList = Object.values(teamsData).map((team) => team.teamName);
+        const teamNamesList = Object.values(teamsData).map(
+          (team) => team.teamName
+        );
         setExistingTeamNames(teamNamesList);
       }
     };
@@ -56,11 +58,11 @@ const MakeNewTeam = () => {
 
   const uploadTeam = async () => {
     try {
-      const newTeamRef = push(ref(db, 'teams'));
+      const newTeamRef = push(ref(db, "teams"));
       const teamId = newTeamRef.key;
 
       const channelsArray = channelName
-        .split(',')
+        .split(",")
         .map((channel) => channel.trim());
       const channelsObject = channelsArray.reduce((acc, channel) => {
         acc[channel] = channel; // Use a unique identifier for each channel
@@ -70,7 +72,7 @@ const MakeNewTeam = () => {
       const team = {
         teamName,
         channels: channelsObject,
-        members: members.split(',').map((member) => member.trim()),
+        members: members.split(",").map((member) => member.trim()),
         owner: userData?.handle,
         createdOn: new Date().toString(),
         uid: teamId,
@@ -82,12 +84,12 @@ const MakeNewTeam = () => {
         const channelData = {
           teamId,
           title: channel,
-          type: 'public',
+          type: "public",
           participants: team.members,
           messages: {
             0: {
-              content: 'Welcome to the team!',
-              sender: 'Admin',
+              content: "Welcome to the team!",
+              sender: "Admin",
               timestamp: new Date().toString(),
             },
           },
@@ -95,44 +97,44 @@ const MakeNewTeam = () => {
         await set(ref(db, `channels/${teamId}/${channelId}`), channelData);
       }
 
-      setTeamName('');
-      setChannelName('');
-      setMembers('');
-      alert('Team created successfully');
+      setTeamName("");
+      setChannelName("");
+      setMembers("");
+      alert("Team created successfully");
 
       // Navigate to the home or teams page (or any route you prefer)
-      navigate('/'); // This will redirect to the home page after creating the team
+      navigate("/"); // This will redirect to the home page after creating the team
     } catch (error) {
-      console.error('Error creating team:', error.message);
-      setError('Error creating team');
+      console.error("Error creating team:", error.message);
+      setError("Error creating team");
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!teamName || !channelName || !members) {
-      setError('Please enter all team details');
+      setError("Please enter all team details");
       return;
     }
 
     if (teamName.length < 3 || teamName.length > 40) {
-      return alert('Team name must be between 3 and 40 characters');
+      return alert("Team name must be between 3 and 40 characters");
     }
 
     if (existingTeamNames.includes(teamName)) {
-      return alert('Team name must be unique');
+      return alert("Team name must be unique");
     }
 
-    const memberList = members.split(',').map((member) => member.trim());
+    const memberList = members.split(",").map((member) => member.trim());
     const invalidMembers = memberList.filter(
       (member) => !users.includes(member)
     );
     if (invalidMembers.length > 0) {
-      setMemberError(`Invalid members: ${invalidMembers.join(', ')}`);
+      setMemberError(`Invalid members: ${invalidMembers.join(", ")}`);
       return;
     }
 
-    setMemberError('');
+    setMemberError("");
     uploadTeam();
   };
 
@@ -149,7 +151,7 @@ const MakeNewTeam = () => {
   return (
     <Box
       p={5}
-      maxWidth={{ xs: '100%', sm: '600px' }}
+      maxWidth={{ xs: "100%", sm: "600px" }}
       mx="auto"
       bgcolor="inherit"
       borderRadius="md"
@@ -183,16 +185,16 @@ const MakeNewTeam = () => {
               color="primary"
               inputProps={{ maxLength: 64 }}
               sx={{
-                backgroundColor: 'gray.600',
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'teal',
+                backgroundColor: "gray.600",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "teal",
                   },
-                  '&:hover fieldset': {
-                    borderColor: 'teal',
+                  "&:hover fieldset": {
+                    borderColor: "teal",
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'teal',
+                  "&.Mui-focused fieldset": {
+                    borderColor: "teal",
                   },
                 },
               }}
@@ -218,16 +220,16 @@ const MakeNewTeam = () => {
               color="primary"
               inputProps={{ maxLength: 64 }}
               sx={{
-                backgroundColor: 'gray.600',
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: 'teal',
+                backgroundColor: "gray.600",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "teal",
                   },
-                  '&:hover fieldset': {
-                    borderColor: 'teal',
+                  "&:hover fieldset": {
+                    borderColor: "teal",
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'teal',
+                  "&.Mui-focused fieldset": {
+                    borderColor: "teal",
                   },
                 },
               }}
@@ -245,10 +247,11 @@ const MakeNewTeam = () => {
               multiple
               freeSolo
               options={users}
-              value={members.split(',').map((member) => member.trim())}
-              onChange={(event, newValue) => {
-                setMembers(newValue.join(', '));
-              }}
+              getOptionLabel={(option) => option || ""}
+              value={
+                members ? members.split(",").map((member) => member.trim()) : []
+              }
+              onChange={(event, newValue) => setMembers(newValue.join(", "))}
               renderTags={(value, getTagProps) =>
                 value.map((option, index) => {
                   const { key, ...chipProps } = getTagProps({ index });
@@ -269,16 +272,16 @@ const MakeNewTeam = () => {
                   placeholder="Enter members"
                   fullWidth
                   sx={{
-                    backgroundColor: 'gray.600',
-                    '& .MuiOutlinedInput-root': {
-                      '& fieldset': {
-                        borderColor: 'teal',
+                    backgroundColor: "gray.600",
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "teal",
                       },
-                      '&:hover fieldset': {
-                        borderColor: 'teal',
+                      "&:hover fieldset": {
+                        borderColor: "teal",
                       },
-                      '&.Mui-focused fieldset': {
-                        borderColor: 'teal',
+                      "&.Mui-focused fieldset": {
+                        borderColor: "teal",
                       },
                     },
                   }}
@@ -298,9 +301,9 @@ const MakeNewTeam = () => {
             type="submit"
             fullWidth
             sx={{
-              padding: '12px',
-              '&:hover': {
-                backgroundColor: 'teal',
+              padding: "12px",
+              "&:hover": {
+                backgroundColor: "teal",
               },
             }}
           >

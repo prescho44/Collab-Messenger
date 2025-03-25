@@ -190,7 +190,7 @@ export default function Chats() {
           sx={{ maxWidth: 200, mb: 2 }}
           onClick={() => navigate('/new-team')}
         >
-          New Chat
+          New Team
         </Button>
         <Button
           variant="contained"
