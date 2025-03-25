@@ -22,7 +22,7 @@ const Friends = () => {
 
   useEffect(() => {
     const friendsRef = ref(db, `users/${userData.handle}/friends`);
-    onValue(friendsRef, (snapshot) => {
+    const unsubscribe = onValue(friendsRef, (snapshot) => {
       const friendsData = snapshot.val();
       if (friendsData) {
         const acceptedFriends = Object.values(friendsData).filter(
@@ -40,6 +40,10 @@ const Friends = () => {
         setPendingFriends([]);
       }
     });
+
+    return () => {
+      unsubscribe();
+    };
   }, [userData.handle]);
 
   const handleRemoveFriend = async (friendHandle) => {
@@ -109,7 +113,14 @@ const Friends = () => {
                         {friend.email}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
-                        Status: {friend.status}
+                        Status: {friend.status}{' '}
+                        {friend.status === 'Online'
+                          ? '🟢'
+                          : friend.status === 'Busy'
+                          ? '🔴'
+                          : friend.status === 'Away'
+                          ? '🟡'
+                          : '⚪'}
                       </Typography>
                     </>
                   }
@@ -168,7 +179,14 @@ const Friends = () => {
                             {friend.email}
                           </Typography>
                           <Typography variant="body2" color="textSecondary">
-                            Status: {friend.status}
+                            Status: {friend.status}{' '}
+                            {friend.status === 'Online'
+                              ? '🟢'
+                              : friend.status === 'Busy'
+                              ? '🔴'
+                              : friend.status === 'Away'
+                              ? '🟡'
+                              : '⚪'}
                           </Typography>
                           <Typography
                             variant="body2"
@@ -182,16 +200,17 @@ const Friends = () => {
                     />
                   </Grid>
                   <Grid item xs={4} sm={2} textAlign="right">
-                    {friend.friendAccepted === false && friend.requestFrom !== userData.handle && (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleAcceptFriend(friend.handle)}
-                      >
-                        Accept
-                      </Button>
-                    )}
+                    {friend.friendAccepted === false &&
+                      friend.requestFrom !== userData.handle && (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          onClick={() => handleAcceptFriend(friend.handle)}
+                        >
+                          Accept
+                        </Button>
+                      )}
                   </Grid>
                 </Grid>
               </ListItem>
