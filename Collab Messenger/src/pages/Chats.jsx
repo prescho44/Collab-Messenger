@@ -30,6 +30,7 @@ import useFetchTeams from '../hooks/useFetchTeams';
 import useFetchUsers from '../hooks/useFetchUsers';
 import AddMemberDialog from '../components/AddMemberDialog';
 import { createDirectChat } from '../components/DirectChat/CreateDirectChat';
+import { useEffect } from 'react';
 
 export default function Chats() {
   const { userData } = useContext(AppContext);
@@ -43,6 +44,25 @@ export default function Chats() {
   const location = useLocation();
   const { teamId } = useParams();
   const [alignment, setAlignment] = useState('tabTeamsAndChat');
+  const [directChats, setDirectChats] = useState([]);
+
+  useEffect(() => {
+    const fetchDirectChats = async () => {
+      try {
+        const directChatsRef = ref(db, 'directChats');
+        onValue(directChatsRef, (snapshot) => {
+          const data = snapshot.val();
+          const chats = data ? Object.keys(data).map((key) => ({ id: key, ...data[key] })) : [];
+          setDirectChats(chats);
+        });
+      } catch (error) {
+        console.error('Error fetching direct chats:', error);
+      }
+    };
+
+    fetchDirectChats();
+  }, []);
+
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -268,6 +288,32 @@ export default function Chats() {
                       </Stack>
                     </AccordionDetails>
                   </Accordion>
+                </CardContent>
+              </Card>
+            ))}
+            <Divider />
+            <Typography variant="h6" gutterBottom>
+              Direct Chats
+            </Typography>
+            {directChats.map((chat) => (
+              <Card key={chat.id} variant="outlined" sx={{ padding: 2 }}>
+                <CardContent>
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <Avatar sx={{ bgcolor: 'teal' }}>{chat.chatName[0]}</Avatar>
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {chat.chatName}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Divider sx={{ my: 2 }} />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate(`/chat/${chat.id}`)}
+                  >
+                    Open Chat
+                  </Button>
                 </CardContent>
               </Card>
             ))}

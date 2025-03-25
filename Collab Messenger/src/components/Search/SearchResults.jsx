@@ -38,7 +38,8 @@ const SearchResults = () => {
               uid,
               ...user,
             })).filter((user) => 
-              user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())
+              (user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())) ||
+              (user.email && user.email.toLowerCase().includes(queryParam.toLowerCase()))
             );
             resolve(users);
           } else {
@@ -65,7 +66,12 @@ const SearchResults = () => {
       });
 
       Promise.all([fetchUsers, fetchTeams]).then(([users, teams]) => {
-        setResults([...users, ...teams]);
+        const combinedResults = users.map(user => {
+          const userTeams = teams.filter(team => team.members && team.members.includes(user.uid));
+          return { ...user, teams: userTeams };
+        });
+        console.log('Combined results:', combinedResults); // Debug log
+        setResults(combinedResults);
         setLoading(false);
       }).catch((error) => {
         console.error('Error fetching search results:', error.message);
@@ -126,6 +132,11 @@ const SearchResults = () => {
                     <Typography variant="body2" color="text.secondary" noWrap>
                       {result.email || result.description}
                     </Typography>
+                    {result.teams && result.teams.length > 0 && (
+                      <Typography variant="body2" color="text.secondary">
+                        Teams: {result.teams.map(team => team.name).join(', ')}
+                      </Typography>
+                    )}
                   </CardContent>
                   <CardActions>
                     <Box display="flex" justifyContent="center" width="100%">

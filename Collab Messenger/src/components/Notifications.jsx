@@ -1,7 +1,7 @@
-import { useEffect, useState, useContext } from "react";
-import { ref, onValue, off, update } from "firebase/database";
-import { db } from "../configs/firebaseConfig";
-import { AppContext } from "../store/app.context";
+import { useEffect, useState, useContext } from 'react';
+import { ref, onValue, off, update } from 'firebase/database';
+import { db } from '../configs/firebaseConfig';
+import { AppContext } from '../store/app.context';
 import {
   Menu,
   MenuItem,
@@ -10,9 +10,9 @@ import {
   Divider,
   Typography,
   Box,
-} from "@mui/material";
-import CircleNotificationsIcon from "@mui/icons-material/CircleNotifications";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+} from '@mui/material';
+import CircleNotificationsIcon from '@mui/icons-material/CircleNotifications';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Notifications = () => {
   const { userData } = useContext(AppContext);
@@ -22,9 +22,10 @@ const Notifications = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
   const navigate = useNavigate(); // Initialize the navigate function
+  const [friendRequests, setFriendRequests] = useState([]);
 
   useEffect(() => {
-    const teamsRef = ref(db, "teams");
+    const teamsRef = ref(db, 'teams');
     onValue(teamsRef, (snapshot) => {
       const teamsData = snapshot.val();
       if (teamsData) {
@@ -33,7 +34,7 @@ const Notifications = () => {
 
         Object.entries(teamsData).forEach(([teamId, team]) => {
           teamsList[teamId] = {
-            name: team.teamName || "Unnamed Team",
+            name: team.teamName || 'Unnamed Team',
             channels: team.channels || {},
           };
 
@@ -43,11 +44,16 @@ const Notifications = () => {
               : Object.keys(team.members)
             : [];
 
-          if (members.includes(userData?.handle) || team.owner === userData?.handle) {
+          if (
+            members.includes(userData?.handle) ||
+            team.owner === userData?.handle
+          ) {
             if (team.channels) {
-              Object.entries(team.channels).forEach(([channelId, channelName]) => {
-                channelsList.push({ teamId, channelId, channelName });
-              });
+              Object.entries(team.channels).forEach(
+                ([channelId, channelName]) => {
+                  channelsList.push({ teamId, channelId, channelName });
+                }
+              );
             }
           }
         });
@@ -105,6 +111,25 @@ const Notifications = () => {
     };
   }, [channels, teamsMap, userData?.handle, userData?.uid]);
 
+  useEffect(() => {
+    const friendsRef = ref(db, `users/${userData?.handle}/friends`);
+    const listener = onValue(friendsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const friendsData = snapshot.val();
+        const pendingRequests = Object.entries(friendsData)
+          .filter(([, friend]) => friend.friendAccepted === false)
+          .map(([handle, friend]) => ({ handle, ...friend }));
+        setFriendRequests(pendingRequests);
+      } else {
+        setFriendRequests([]);
+      }
+    });
+
+    return () => {
+      off(friendsRef, listener);
+    };
+  }, [userData?.handle]);
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -112,6 +137,11 @@ const Notifications = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const handleInvationClick = () => {
+    navigate('/friends');
+    handleMenuClose();
+  }
 
   const markMessagesAsRead = () => {
     newMessages.forEach((msg) => {
@@ -143,7 +173,7 @@ const Notifications = () => {
     <>
       {/* Always show the notification icon, but conditionally render the badge */}
       <div color="inherit" onClick={handleMenuOpen}>
-        {userData?.status === "Online" ? (
+        {userData?.status === 'Online' ? (
           <Badge badgeContent={newMessages.length} color="error">
             <CircleNotificationsIcon sx={{ fontSize: 30 }} />
           </Badge>
@@ -152,12 +182,8 @@ const Notifications = () => {
         )}
       </div>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={handleMenuClose}
-      >
-        {newMessages.length > 0 ? (
+      <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
+        {newMessages.length > 0 || friendRequests.length > 0 ? (
           [
             ...newMessages.map((msg) => (
               <MenuItem key={msg.id} onClick={() => handleMessageClick(msg)}>
@@ -166,8 +192,18 @@ const Notifications = () => {
                     <strong>{msg.sender}:</strong> {msg.content}
                   </Typography>
                   <Typography variant="caption" color="textSecondary">
-                    From: {teamsMap[msg.teamId]?.name || "Unknown Team"} -{" "}
-                    {teamsMap[msg.teamId]?.channels[msg.channelId] || "Unknown Channel"}
+                    From: {teamsMap[msg.teamId]?.name || 'Unknown Team'} -{' '}
+                    {teamsMap[msg.teamId]?.channels[msg.channelId] ||
+                      'Unknown Channel'}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            )),
+            ...friendRequests.map((request) => (
+              <MenuItem key={request.uid} onClick={handleInvationClick}>
+                <Box>
+                  <Typography variant="body2">
+                    <strong>Friend Request</strong> from {request.handle}
                   </Typography>
                 </Box>
               </MenuItem>
@@ -179,7 +215,7 @@ const Notifications = () => {
                   Clear
                 </Typography>
               </Box>
-            </MenuItem>
+            </MenuItem>,
           ]
         ) : (
           <MenuItem onClick={handleMenuClose}>No new messages</MenuItem>

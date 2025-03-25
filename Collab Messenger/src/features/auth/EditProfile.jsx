@@ -1,7 +1,8 @@
-import { useState, useContext, useEffect } from "react";
-import { AppContext } from "../../store/app.context";
-import { db } from "../../configs/firebaseConfig";
-import { ref, update, get } from "firebase/database";
+import { useState, useContext, useEffect } from 'react';
+import { AppContext } from '../../store/app.context';
+import { db, storage } from '../../configs/firebaseConfig';
+import { ref as dbRef, update, get } from 'firebase/database';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import {
   Box,
   TextField,
@@ -13,47 +14,119 @@ import {
   FormControl,
   InputLabel,
   Avatar,
-} from "@mui/material";
+  LinearProgress,
+  IconButton,
+  InputAdornment,
+} from '@mui/material';
 import {
   checkEmailExists,
   checkHandleExists,
-} from "../../services/user.service";
-import { uploadAvatar } from "../../services/storage.service";
-import { useNavigate } from "react-router-dom";
+} from '../../services/user.service';
+import { useNavigate } from 'react-router-dom';
+import imageCompression from 'browser-image-compression';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import defaultProfileImage from '../../assets/default-avatar.jpg';
 
 const EditProfile = () => {
   const { userData, setAppState } = useContext(AppContext);
   const navigate = useNavigate();
 
   // State
-  const [handle, setHandle] = useState(userData.handle || "");
-  const [email, setEmail] = useState(userData.email || "");
-  const [phoneNumber, setPhoneNumber] = useState(userData.phoneNumber || "");
-  const [status, setStatus] = useState(userData.status || "Online");
+  const [handle, setHandle] = useState(userData.handle || '');
+  const [email, setEmail] = useState(userData.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(userData.phoneNumber || '');
+  const [status, setStatus] = useState(userData.status || 'Online');
   const [profilePicture, setProfilePicture] = useState(
-    userData.photo || "/default-avatar.jpg"
+    userData.photo || '/default-avatar.jpg'
   );
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [avatarFile, setAvatarFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     if (!avatarFile) {
-      setProfilePicture(userData.photo || "/default-avatar.jpg");
+      setProfilePicture(userData.photo || '/default-avatar.jpg');
+      setImagePreview(userData.photo || '/default-avatar.jpg');
     }
   }, [userData.photo, avatarFile]);
 
+  const compressImage = async (file) => {
+    const options = {
+      maxSizeMB: 0.3,
+      maxWidthOrHeight: 400,
+      useWebWorker: true,
+      initialQuality: 0.7,
+    };
+    try {
+      const compressedFile = await imageCompression(file, options);
+      return compressedFile;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      throw error;
+    }
+  };
+
+  const uploadImage = async (uid) => {
+    if (!avatarFile) return userData.photo || defaultProfileImage;
+
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      const compressedImageFile = await compressImage(avatarFile);
+
+      const timestamp = Date.now();
+      const filename = `${timestamp}_${compressedImageFile.name}`;
+      const storageRef = ref(storage, `avatars/${uid}/${filename}`);
+
+      const uploadTask = uploadBytesResumable(storageRef, compressedImageFile);
+
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(Math.round(progress));
+          },
+          (error) => {
+            setIsUploading(false);
+            console.error('Upload error:', error);
+            reject(error);
+          },
+          async () => {
+            try {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              setIsUploading(false);
+              setUploadProgress(100);
+              resolve(downloadURL);
+            } catch (error) {
+              reject(error);
+            }
+          }
+        );
+      });
+    } catch (error) {
+      setIsUploading(false);
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
-    setError("");
+    setError('');
 
     const emailExists = await checkEmailExists(email);
     if (emailExists && email !== userData.email) {
-      setError("Email already exists");
+      setError('Email already exists');
       return;
     }
 
     const handleExists = await checkHandleExists(handle);
     if (handleExists && handle !== userData.handle) {
-      setError("Username already exists");
+      setError('Username already exists');
       return;
     }
 
@@ -63,13 +136,18 @@ const EditProfile = () => {
     if (phoneNumber !== userData.phoneNumber) updates.phoneNumber = phoneNumber;
     if (status !== userData.status) updates.status = status;
 
-    const userRef = ref(db, `users/${userData.handle}`);
-
-    if (avatarFile) {
-      const profilePictureUrl = await uploadAvatar(userData.uid, avatarFile);
+    try {
+      const profilePictureUrl = await uploadImage(userData.uid);
       updates.photo = profilePictureUrl;
       setProfilePicture(profilePictureUrl);
+    } catch (uploadError) {
+      setError('Failed to upload profile picture.');
+      console.error('Upload error:', uploadError);
+      setIsUploading(false);
+      return;
     }
+
+    const userRef = dbRef(db, `users/${userData.handle}`);
 
     if (Object.keys(updates).length > 0) {
       await update(userRef, updates);
@@ -146,7 +224,16 @@ const EditProfile = () => {
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        return;
+      }
       setAvatarFile(file);
+      setImagePreview(URL.createObjectURL(file));
       setProfilePicture(URL.createObjectURL(file));
     }
   };
@@ -156,22 +243,53 @@ const EditProfile = () => {
       elevation={4}
       sx={{
         maxWidth: 600,
-        mx: "auto",
+        mx: 'auto',
         p: 4,
         mt: 5,
         borderRadius: 3,
-        textAlign: "center",
+        textAlign: 'center',
       }}
     >
       <Typography variant="h4" gutterBottom>
         Edit Profile
       </Typography>
 
-      <Avatar
-        alt={userData.handle}
-        src={profilePicture}
-        sx={{ width: 120, height: 120, margin: "auto", mb: 2 }}
-      />
+      <Box
+        sx={{
+          position: 'relative',
+          width: 120,
+          height: 120,
+          margin: 'auto',
+          mb: 2,
+        }}
+      >
+        <Avatar
+          alt={userData.handle}
+          src={imagePreview || profilePicture || defaultProfileImage}
+          sx={{ width: 120, height: 120 }}
+        />
+        {isUploading && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: 'rgba(0, 0, 0, 0.7)',
+              color: 'white',
+              padding: '5px',
+              textAlign: 'center',
+            }}
+          >
+            <LinearProgress
+              variant="determinate"
+              value={uploadProgress}
+              sx={{ height: 4 }}
+            />
+            <Typography variant="caption">{uploadProgress}%</Typography>
+          </Box>
+        )}
+      </Box>
 
       <Box
         component="form"
@@ -221,16 +339,33 @@ const EditProfile = () => {
           </Select>
         </FormControl>
 
-        <Button variant="contained" component="label" sx={{ mb: 0, mr: 2 }}>
-          Upload Profile Picture
-          <input type="file" hidden onChange={handleProfilePictureChange} />
-        </Button>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
+          <input
+            type="file"
+            id="profile-picture-upload"
+            accept="image/*"
+            onChange={handleProfilePictureChange}
+            style={{ display: 'none' }}
+          />
+          <label htmlFor="profile-picture-upload">
+            <IconButton color="primary" component="span">
+              <PhotoCamera />
+            </IconButton>
+          </label>
+        </Box>
 
         <Button
           variant="contained"
           color="primary"
           type="submit"
           onClick={handleSave}
+          disabled={isUploading}
         >
           Save
         </Button>
