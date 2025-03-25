@@ -64,6 +64,7 @@ export const checkEmailExists = async (email) => {
 };
 
 export const checkHandleExists = async (handle) => {
+  console.log('Checking handle:', handle); // Debug log
   const snapshot = await get(query(ref(db, 'users'), orderByChild('handle'), equalTo(handle)));
   return snapshot.exists();
 };

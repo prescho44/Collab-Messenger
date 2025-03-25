@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { AppContext } from '../../store/app.context';
 import { db, storage } from '../../configs/firebaseConfig';
-import { ref as dbRef, update, get } from 'firebase/database';
+import { ref as dbRef, update, get, set, remove } from 'firebase/database';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import {
   Box,
@@ -16,7 +16,7 @@ import {
   Avatar,
   LinearProgress,
   IconButton,
-  InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 import {
   checkEmailExists,
@@ -44,6 +44,7 @@ const EditProfile = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!avatarFile) {
@@ -117,21 +118,23 @@ const EditProfile = () => {
 
   const handleSave = async () => {
     setError('');
+    setIsLoading(true);
 
     const emailExists = await checkEmailExists(email);
     if (emailExists && email !== userData.email) {
       setError('Email already exists');
+      setIsLoading(false);
       return;
     }
 
     const handleExists = await checkHandleExists(handle);
     if (handleExists && handle !== userData.handle) {
       setError('Username already exists');
+      setIsLoading(false);
       return;
     }
 
     const updates = {};
-    if (handle !== userData.handle) updates.handle = handle;
     if (email !== userData.email) updates.email = email;
     if (phoneNumber !== userData.phoneNumber) updates.phoneNumber = phoneNumber;
     if (status !== userData.status) updates.status = status;
@@ -144,17 +147,41 @@ const EditProfile = () => {
       setError('Failed to upload profile picture.');
       console.error('Upload error:', uploadError);
       setIsUploading(false);
+      setIsLoading(false);
       return;
     }
 
-    const userRef = dbRef(db, `users/${userData.handle}`);
+    const oldHandle = userData.handle;
+    const newHandle = handle;
 
-    if (Object.keys(updates).length > 0) {
+    if (newHandle !== oldHandle) {
+      // Ensure the new handle does not already exist
+      const handleExists = await checkHandleExists(newHandle);
+      if (handleExists) {
+        setError('Username already exists');
+        setIsLoading(false);
+        return;
+      }
+
+      // Create a new user entry with the new handle
+      const newUserRef = dbRef(db, `users/${newHandle}`);
+      await set(newUserRef, {
+        ...userData,
+        ...updates,
+        handle: newHandle,
+      });
+
+      // Delete the old user entry
+      const oldUserRef = dbRef(db, `users/${oldHandle}`);
+      await remove(oldUserRef);
+
+      // Update references in teams and channels
+      await updateReferences(oldHandle, newHandle);
+    } else {
+      // Update the existing user entry
+      const userRef = dbRef(db, `users/${oldHandle}`);
       await update(userRef, updates);
     }
-
-    // Update references in teams and channels
-    await updateReferences(userData.handle, handle);
 
     // Update local state
     setAppState((prev) => ({
@@ -162,15 +189,18 @@ const EditProfile = () => {
       userData: {
         ...prev.userData,
         ...updates,
+        handle: newHandle,
       },
     }));
 
+    console.log('Navigating to profile page');
+    setIsLoading(false);
     navigate(`/profile/${userData.uid}`);
   };
 
   const updateReferences = async (oldHandle, newHandle) => {
     // Update teams
-    const teamsRef = ref(db, 'teams');
+    const teamsRef = dbRef(db, 'teams');
     const teamsSnapshot = await get(teamsRef);
     if (teamsSnapshot.exists()) {
       const teams = teamsSnapshot.val();
@@ -180,16 +210,18 @@ const EditProfile = () => {
           const updatedMembers = team.members.map((member) =>
             member === oldHandle ? newHandle : member
           );
-          await update(ref(db, `teams/${teamId}/members`), updatedMembers);
+          console.log(`Updating team members for teamId: ${teamId}`);
+          await update(dbRef(db, `teams/${teamId}/members`), updatedMembers);
         }
         if (team.owner === oldHandle) {
-          await update(ref(db, `teams/${teamId}`), { owner: newHandle });
+          console.log(`Updating team owner for teamId: ${teamId}`);
+          await update(dbRef(db, `teams/${teamId}`), { owner: newHandle });
         }
       }
     }
 
     // Update channels
-    const channelsRef = ref(db, 'channels');
+    const channelsRef = dbRef(db, 'channels');
     const channelsSnapshot = await get(channelsRef);
     if (channelsSnapshot.exists()) {
       const channels = channelsSnapshot.val();
@@ -199,13 +231,17 @@ const EditProfile = () => {
           const updatedParticipants = channel.participants.map((participant) =>
             participant === oldHandle ? newHandle : participant
           );
-          await update(ref(db, `channels/${channel.teamId}/${channelId}/participants`), updatedParticipants);
+          console.log(`Updating channel participants for channelId: ${channelId}`);
+          await update(
+            dbRef(db, `channels/${channel.teamId}/${channelId}/participants`),
+            updatedParticipants
+          );
         }
       }
     }
 
     // Update direct chats
-    const chatsRef = ref(db, 'chats');
+    const chatsRef = dbRef(db, 'chats');
     const chatsSnapshot = await get(chatsRef);
     if (chatsSnapshot.exists()) {
       const chats = chatsSnapshot.val();
@@ -215,7 +251,8 @@ const EditProfile = () => {
           const updatedMembers = chat.members.map((member) =>
             member === oldHandle ? newHandle : member
           );
-          await update(ref(db, `chats/${chatId}`), { members: updatedMembers });
+          console.log(`Updating chat members for chatId: ${chatId}`);
+          await update(dbRef(db, `chats/${chatId}`), { members: updatedMembers });
         }
       }
     }
@@ -365,9 +402,9 @@ const EditProfile = () => {
           color="primary"
           type="submit"
           onClick={handleSave}
-          disabled={isUploading}
+          disabled={isUploading || isLoading}
         >
-          Save
+          {isLoading ? <CircularProgress size={24} /> : 'Save'}
         </Button>
       </Box>
     </Paper>

@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaSearch } from "react-icons/fa";
-import { Box, IconButton, InputBase, Paper } from '@mui/material';
+import { Box, IconButton, InputBase, Paper, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 const Search = () => {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleSearch = (e) => {
     if (e) e.preventDefault();
@@ -24,7 +27,13 @@ const Search = () => {
   return (
     <Paper
       component="form"
-      sx={{ display: 'flex', alignItems: 'center', width: 800, padding: '2px 4px'  }}
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        width: isSmallScreen ? '100%' : 800,
+        padding: '2px 4px',
+        margin: '0 auto',
+      }}
       onSubmit={handleSearch}
     >
       <InputBase

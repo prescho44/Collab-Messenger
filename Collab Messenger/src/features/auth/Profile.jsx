@@ -127,14 +127,12 @@ const Profile = ({ userId }) => {
         sx={{ width: 120, height: 120, margin: 'auto', mb: 2 }}
       />
       <Typography variant="h4" mt={2}>
-        {otherUserData.username}
+        {otherUserData.handle}
       </Typography>
       <Typography variant="body2" mt={1}>
         {otherUserData.email}
       </Typography>
-      <Typography variant="body2" mt={1}>
-        {otherUserData.handle}
-      </Typography>
+     
       <Typography variant="body2" mt={1}>
         {otherUserData.phoneNumber}
       </Typography>
