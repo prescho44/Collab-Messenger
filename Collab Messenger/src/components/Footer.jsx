@@ -2,15 +2,14 @@ import {
   Box,
   Container,
   Stack,
-  
   IconButton,
   Divider,
-  Link,
 } from "@mui/material";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import { useContext } from "react";
 import { AppContext } from "../store/app.context";
 import TeamsAndUsers from "../TeamsAndUsers/TeamsAndUsers";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   const { user } = useContext(AppContext);
@@ -39,25 +38,25 @@ export default function Footer() {
             spacing={2}
             justifyContent="center"
           >
-            <Link href="/" color="inherit" underline="hover">
+            <Link to="/" style={{color: '#9e9e9e', textDecoration: 'none'}}>
               Home
             </Link>
 
             {user ? (
               <>
-                <Link href="/new-team" color="inherit" underline="hover">
+                <Link to="/new-team" style={{color: '#9e9e9e', textDecoration: 'none'}}>
                   New Chat
                 </Link>
-                <Link href="/profile" color="inherit" underline="hover">
+                <Link to="/profile" style={{color: '#9e9e9e', textDecoration: 'none'}}>
                   Your Profile
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/login" color="inherit" underline="hover">
+                <Link to="/login" style={{color: '#9e9e9e', textDecoration: 'none'}}>
                   Login
                 </Link>
-                <Link href="/register" color="inherit" underline="hover">
+                <Link to="/register" style={{color: '#9e9e9e', textDecoration: 'none'}}>
                   Register
                 </Link>
               </>

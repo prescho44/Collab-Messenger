@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../../services/auth.service';
 import { createUserHandle, getUserByHandle } from '../../services/user.service';
 import { AppContext } from '../../store/app.context';
@@ -16,7 +16,6 @@ import {
   InputAdornment,
   IconButton,
   LinearProgress,
-  Link,
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 
@@ -294,13 +293,10 @@ export default function Register() {
             fullWidth
             value={user.phoneNumber}
             onChange={updateUser('phoneNumber')}
+            type="tel"
             InputProps={{
               startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton edge="start">
-                    <PhotoCamera />
-                  </IconButton>
-                </InputAdornment>
+                <InputAdornment position="start">+359</InputAdornment>
               ),
             }}
           />
@@ -317,7 +313,7 @@ export default function Register() {
 
           <Typography variant="body2" align="center" pt={2}  sx={{ borderTop: '1px solid #ccc' }}>
             Already have an account?{' '}
-            <Link href="/login" variant="body2" sx={{ color: '#1976d2' }}>
+            <Link to="/login" style={{color: '#68c4ff', textDecoration: 'none'}}>
               Sign in
             </Link>
           </Typography>

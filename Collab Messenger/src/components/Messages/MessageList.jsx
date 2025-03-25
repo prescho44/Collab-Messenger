@@ -67,7 +67,7 @@ const MessageList = ({ messages, user, handleMenuClick, formatTime }) => {
                   </IconButton>
                 </Stack>
                 {message.content && (
-                  <Typography variant="body1">{message.content}</Typography>
+                  <Typography variant="body1" sx={{wordBreak: 'break-all'}}>{message.content}</Typography>
                 )}
                 {message.gifUrl && (
                   <img

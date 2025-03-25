@@ -103,16 +103,28 @@ const Friends = () => {
               <Grid item xs={8} sm={6}>
                 <ListItemText
                   primary={
-                    <Typography variant="h6" fontWeight="bold">
-                      {friend.handle}
-                    </Typography>
-                  }
-                  secondary={
                     <>
-                      <Typography variant="body2" color="textSecondary">
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        component="span"
+                      >
+                        {friend.handle}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        component="span"
+                        display="block"
+                      >
                         {friend.email}
                       </Typography>
-                      <Typography variant="body2" color="textSecondary">
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        component="span"
+                        display="block"
+                      >
                         Status: {friend.status}{' '}
                         {friend.status === 'Online'
                           ? '🟢'
@@ -169,16 +181,28 @@ const Friends = () => {
                   <Grid item xs={8} sm={6}>
                     <ListItemText
                       primary={
-                        <Typography variant="h6" fontWeight="bold">
-                          {friend.handle}
-                        </Typography>
-                      }
-                      secondary={
                         <>
-                          <Typography variant="body2" color="textSecondary">
+                          <Typography
+                            variant="h6"
+                            fontWeight="bold"
+                            component="span"
+                          >
+                            {friend.handle}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            component="span"
+                            display="block"
+                          >
                             {friend.email}
                           </Typography>
-                          <Typography variant="body2" color="textSecondary">
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            component="span"
+                            display="block"
+                          >
                             Status: {friend.status}{' '}
                             {friend.status === 'Online'
                               ? '🟢'
@@ -192,6 +216,8 @@ const Friends = () => {
                             variant="body2"
                             color="textSecondary"
                             style={{ color: 'orange' }}
+                            component="span"
+                            display="block"
                           >
                             Friend request is pending...
                           </Typography>

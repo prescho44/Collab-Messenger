@@ -1,8 +1,16 @@
 import { AppContext } from '../../store/app.context';
 import { useContext, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../../services/auth.service';
-import { Box, Button, TextField, Typography, Container, Link, Paper, CircularProgress } from '@mui/material';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Paper,
+  CircularProgress,
+} from '@mui/material';
 import { toast } from 'react-toastify';
 
 const Login = () => {
@@ -48,15 +56,18 @@ const Login = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs"
-    sx={{
-      height: "100vh",
-      width: "100%",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-    }}>
+    <Container
+      component="main"
+      maxWidth="xs"
+      sx={{
+        height: '100vh',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <Paper elevation={3} sx={{ padding: 3 }}>
         <Typography variant="h5" align="center" gutterBottom>
           Login
@@ -89,14 +100,21 @@ const Login = () => {
             onClick={login}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} color="secondary" /> : 'Login'}
+            {loading ? (
+              <CircularProgress size={24} color="secondary" />
+            ) : (
+              'Login'
+            )}
           </Button>
         </form>
-        <Typography variant="body2" align="center" mt={2} pt={2} sx={{ borderTop: '1px solid #ccc' }}>
-          Don't have an account?{' '}
-          <Link href="/register" variant="body2" sx={{ color: '#1976d2' }}>
-            Sign up
-          </Link>
+        <Typography
+          variant="body2"
+          align="center"
+          mt={2}
+          pt={2}
+          sx={{ borderTop: '1px solid #ccc' }}
+        >
+          Don't have an account? <Link to="/register" style={{color: '#68c4ff', textDecoration: 'none'}}>Sign up</Link>
         </Typography>
       </Paper>
     </Container>

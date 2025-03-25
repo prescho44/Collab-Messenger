@@ -22,6 +22,7 @@ const Profile = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [editedData, setEditedData] = useState({});
   const [sendMessageLoading, setSendMessageLoading] = useState(false);
+  const [friendRequestLoading, setFriendRequestLoading] = useState(false);
 
   useEffect(() => {
     if (!uid) {
@@ -56,39 +57,42 @@ const Profile = ({ userId }) => {
     }
   };
 
-  const handleInviteToTeam = () => {
-    console.log('Invite to Team clicked');
-  };
-
   const handleAddFriend = async () => {
-    const currentUserFriendsRef = ref(
-      db,
-      `users/${userData.handle}/friends/${otherUserData.handle}`
-    );
-    await set(currentUserFriendsRef, {
-      uid: otherUserData.uid,
-      handle: otherUserData.handle,
-      email: otherUserData.email,
-      photo: otherUserData.photo || '/src/assets/default-avatar.jpg',
-      status: otherUserData.status || 'Online',
-      friendAccepted: false,
-      requestFrom: userData.handle,
-    });
+    setFriendRequestLoading(true);
+    try {
+      const currentUserFriendsRef = ref(
+        db,
+        `users/${userData.handle}/friends/${otherUserData.handle}`
+      );
+      await set(currentUserFriendsRef, {
+        uid: otherUserData.uid,
+        handle: otherUserData.handle,
+        email: otherUserData.email,
+        photo: otherUserData.photo || '/src/assets/default-avatar.jpg',
+        status: otherUserData.status || 'Online',
+        friendAccepted: false,
+        requestFrom: userData.handle,
+      });
 
-    const otherUserFriendsRef = ref(
-      db,
-      `users/${otherUserData.handle}/friends/${userData.handle}`
-    );
+      const otherUserFriendsRef = ref(
+        db,
+        `users/${otherUserData.handle}/friends/${userData.handle}`
+      );
 
-    await set(otherUserFriendsRef, {
-      uid: userData.uid,
-      handle: userData.handle,
-      email: userData.email,
-      photo: userData.photo || '/src/assets/default-avatar.jpg',
-      status: userData.status || 'Online',
-      friendAccepted: false,
-      requestFrom: userData.handle,
-    });
+      await set(otherUserFriendsRef, {
+        uid: userData.uid,
+        handle: userData.handle,
+        email: userData.email,
+        photo: userData.photo || '/src/assets/default-avatar.jpg',
+        status: userData.status || 'Online',
+        friendAccepted: false,
+        requestFrom: userData.handle,
+      });
+    } catch (error) {
+      console.error('Error adding friend:', error.message || error);
+    } finally {
+      setFriendRequestLoading(false);
+    }
   };
 
   const handleEditProfile = () => {
@@ -132,7 +136,7 @@ const Profile = ({ userId }) => {
       <Typography variant="body2" mt={1}>
         {otherUserData.email}
       </Typography>
-     
+
       <Typography variant="body2" mt={1}>
         {otherUserData.phoneNumber}
       </Typography>
@@ -170,12 +174,14 @@ const Profile = ({ userId }) => {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleInviteToTeam}
+            onClick={handleAddFriend}
+            disabled={friendRequestLoading}
           >
-            Invite to Team
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleAddFriend}>
-            Add Friend
+            {friendRequestLoading ? (
+              <CircularProgress size={24} />
+            ) : (
+              'Add Friend'
+            )}
           </Button>
         </Box>
       )}
