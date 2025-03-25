@@ -12,7 +12,7 @@ import TeamsAndUsers from "../TeamsAndUsers/TeamsAndUsers";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
-  const { user } = useContext(AppContext);
+  const { user, userData } = useContext(AppContext);
 
   return (
     <Box
@@ -47,7 +47,7 @@ export default function Footer() {
                 <Link to="/new-team" style={{color: '#9e9e9e', textDecoration: 'none'}}>
                   New Chat
                 </Link>
-                <Link to="/profile" style={{color: '#9e9e9e', textDecoration: 'none'}}>
+                <Link to={`/profile/${userData?.uid}`} style={{color: '#9e9e9e', textDecoration: 'none'}}>
                   Your Profile
                 </Link>
               </>
