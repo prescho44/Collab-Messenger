@@ -33,6 +33,7 @@ const AppContent = () => {
     user: null,
     userData: null,
     isInitialized: false,
+    directChats: [],
   });
 
   useEffect(() => {
