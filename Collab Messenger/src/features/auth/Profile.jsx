@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { AppContext } from '../../store/app.context';
 import { db } from '../../configs/firebaseConfig';
-import { ref, set } from 'firebase/database';
+import { ref, set, onValue } from 'firebase/database';
 
 const Profile = ({ userId }) => {
   const { uid } = useParams();
@@ -23,6 +23,7 @@ const Profile = ({ userId }) => {
   const [editedData, setEditedData] = useState({});
   const [sendMessageLoading, setSendMessageLoading] = useState(false);
   const [friendRequestLoading, setFriendRequestLoading] = useState(false);
+  const [userTeams, setUserTeams] = useState([]);
 
   useEffect(() => {
     if (!uid) {
@@ -35,6 +36,18 @@ const Profile = ({ userId }) => {
       .then((data) => {
         setOtherUserData(data);
         setEditedData(data);
+
+        // Fetch teams for the user
+        const teamsRef = ref(db, 'teams');
+        onValue(teamsRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const teams = Object.entries(snapshot.val()).map(([id, team]) => ({
+              id,
+              ...team,
+            })).filter((team) => team.members && Object.keys(team.members).includes(uid));
+            setUserTeams(teams);
+          }
+        });
       })
       .catch((error) => {
         console.error('Error fetching user data:', error);
@@ -56,7 +69,6 @@ const Profile = ({ userId }) => {
       setSendMessageLoading(false);
     }
   };
-
 
   const handleAddFriend = async () => {
     setFriendRequestLoading(true);
@@ -131,16 +143,14 @@ const Profile = ({ userId }) => {
         src={otherUserData.photo || editedData.photo}
         sx={{ width: 120, height: 120, margin: 'auto', mb: 2 }}
       />
-      <Typography variant="h4" mt={1}>
-        {otherUserData.handle}
-      </Typography>
-      <Typography variant="body2" mt={2}>
-        {otherUserData.username}
       <Typography variant="h4" mt={2}>
-        {otherUserData.handle}
+        {otherUserData.username}
       </Typography>
       <Typography variant="body2" mt={1}>
         {otherUserData.email}
+      </Typography>
+      <Typography variant="body2" mt={1}>
+        {otherUserData.handle}
       </Typography>
       <Typography variant="body2" mt={1}>
         {otherUserData.phoneNumber}
@@ -150,6 +160,22 @@ const Profile = ({ userId }) => {
       <Typography variant="body2" mt={1} color="textSecondary">
         Status: {otherUserData.status || 'No status set'}
       </Typography>
+
+      {/* Displaying Teams */}
+      <Typography variant="h6" mt={2}>
+        Teams:
+      </Typography>
+      {userTeams.length > 0 ? (
+        userTeams.map((team) => (
+          <Typography key={team.id} variant="body2" mt={1}>
+            {team.teamName}
+          </Typography>
+        ))
+      ) : (
+        <Typography variant="body2" mt={1}>
+          No teams found
+        </Typography>
+      )}
 
       {isOwnProfile ? (
         <Box sx={{ mt: 2 }}>
@@ -176,8 +202,17 @@ const Profile = ({ userId }) => {
               'Send Message'
             )}
           </Button>
-          <Button variant="contained" color="primary" onClick={handleAddFriend}>
-            Add Friend
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddFriend}
+            disabled={friendRequestLoading}
+          >
+            {friendRequestLoading ? (
+              <CircularProgress size={24} />
+            ) : (
+              'Add Friend'
+            )}
           </Button>
         </Box>
       )}

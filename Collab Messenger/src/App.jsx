@@ -18,7 +18,6 @@ import MakeNewTeam from './pages/MakeNewTeam';
 import ChatView from './pages/ChatView';
 import Footer from './components/Footer';
 import { Box, CircularProgress } from '@mui/material';
-import VideoCallView from './pages/VideoCallView';
 import { ToastContainer } from 'react-toastify';
 import SearchResults from './components/Search/SearchResults';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,6 +25,7 @@ import Friends from './features/auth/Friends';
 import MakeNewChannel from './pages/MakeNewChannel';
 import DirectChatView from './pages/DirectChatView';
 import TeamDetails from './TeamsAndUsers/TeamDetails'; 
+import VideoCall from './pages/VideoCallView';
 
 const AppContent = () => {
   const location = useLocation();
