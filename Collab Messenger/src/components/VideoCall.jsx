@@ -9,11 +9,6 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
     const callFrameRef = useRef(null);
     const navigate = useNavigate();
 
-    console.log("VideoCall - roomUrl:", roomUrl);
-    console.log("VideoCall - teamId:", teamId);
-    console.log("VideoCall - chatId:", chatId);
-    console.log("VideoCall - userData:", userData);
-
     useEffect(() => {
         const container = document.getElementById('videoContainer');
         if (container && !callFrameRef.current) {
@@ -47,7 +42,7 @@ export const VideoCall = ({ roomUrl = "https://plamen.daily.co/WBknuGeqwpWn531Ji
                     console.error('Error joining room:', error);
                 });
         } else {
-            console.log('Call frame not ready or roomUrl is not a string');
+            console.error('Call frame not ready or roomUrl is not a string');
         }
 
         return () => {

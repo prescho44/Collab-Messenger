@@ -203,7 +203,7 @@ const Notifications = () => {
               <MenuItem key={request.uid} onClick={handleInvationClick}>
                 <Box>
                   <Typography variant="body2">
-                    <strong>Friend Request</strong> from {request.handle}
+                    <strong>Friend Request</strong> to {request.handle}
                   </Typography>
                 </Box>
               </MenuItem>

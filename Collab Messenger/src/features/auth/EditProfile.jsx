@@ -193,7 +193,6 @@ const EditProfile = () => {
       },
     }));
 
-    console.log('Navigating to profile page');
     setIsLoading(false);
     navigate(`/profile/${userData.uid}`);
   };
@@ -210,11 +209,10 @@ const EditProfile = () => {
           const updatedMembers = team.members.map((member) =>
             member === oldHandle ? newHandle : member
           );
-          console.log(`Updating team members for teamId: ${teamId}`);
-          await update(dbRef(db, `teams/${teamId}/members`), updatedMembers);
+      
+          await update(dbRef(db, `teams/${teamId}`), { members: updatedMembers });
         }
         if (team.owner === oldHandle) {
-          console.log(`Updating team owner for teamId: ${teamId}`);
           await update(dbRef(db, `teams/${teamId}`), { owner: newHandle });
         }
       }
@@ -225,17 +223,19 @@ const EditProfile = () => {
     const channelsSnapshot = await get(channelsRef);
     if (channelsSnapshot.exists()) {
       const channels = channelsSnapshot.val();
-      for (const channelId in channels) {
-        const channel = channels[channelId];
-        if (channel.participants && channel.participants.includes(oldHandle)) {
-          const updatedParticipants = channel.participants.map((participant) =>
-            participant === oldHandle ? newHandle : participant
-          );
-          console.log(`Updating channel participants for channelId: ${channelId}`);
-          await update(
-            dbRef(db, `channels/${channel.teamId}/${channelId}/participants`),
-            updatedParticipants
-          );
+      for (const teamId in channels) {
+        const teamChannels = channels[teamId];
+        for (const channelId in teamChannels) {
+          const channel = teamChannels[channelId];
+          if (channel.participants && channel.participants.includes(oldHandle)) {
+            const updatedParticipants = channel.participants.map((participant) =>
+              participant === oldHandle ? newHandle : participant
+            );
+            await update(
+              dbRef(db, `channels/${teamId}/${channelId}`),
+              { participants: updatedParticipants }
+            );
+          }
         }
       }
     }
@@ -251,7 +251,6 @@ const EditProfile = () => {
           const updatedMembers = chat.members.map((member) =>
             member === oldHandle ? newHandle : member
           );
-          console.log(`Updating chat members for chatId: ${chatId}`);
           await update(dbRef(db, `chats/${chatId}`), { members: updatedMembers });
         }
       }

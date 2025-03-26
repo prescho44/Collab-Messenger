@@ -30,7 +30,7 @@ const SearchResults = () => {
     const fetchResults = () => {
       if (!queryParam) return;
 
-      console.log('Fetching results for query:', queryParam); // Debug log
+      console.log('Fetching results for query:', queryParam);
       setLoading(true);
       
       const usersRef = ref(db, 'users');
@@ -46,7 +46,6 @@ const SearchResults = () => {
               (user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())) ||
               (user.email && user.email.toLowerCase().includes(queryParam.toLowerCase()))
             );
-            console.log('Fetched users:', users); // Debug log
             resolve(users);
           } else {
             resolve([]);
@@ -59,12 +58,11 @@ const SearchResults = () => {
         onValue(teamsRef, (snapshot) => {
           if (snapshot.exists()) {
             const teams = Object.entries(snapshot.val()).map(([id, team]) => ({
-              id, // Add id to team object
+              id,
               ...team,
             })).filter((team) =>
               team.teamName && team.teamName.toLowerCase().includes(queryParam.toLowerCase())
             );
-            console.log('Fetched teams:', teams); // Debug log
             resolve(teams);
           } else {
             resolve([]);
@@ -83,7 +81,7 @@ const SearchResults = () => {
           return { ...team, type: 'team', members: teamMembers };
         })
       ];
-        console.log('Combined results:', combinedResults); // Debug log
+        console.log('Combined results:', combinedResults);
         setUsers(users);
         setTeams(teams);
         setLoading(false);
@@ -97,7 +95,7 @@ const SearchResults = () => {
   }, [queryParam]);
 
   const handleClick = (id, type) => {
-    console.log(`Navigating to ${type} with id: ${id}`); // Debug log
+    console.log(`Navigating to ${type} with id: ${id}`);
     if (type === 'user') {
       navigate(`/profile/${id}`);
     } else if (type === 'team') {
@@ -157,7 +155,7 @@ const SearchResults = () => {
                           </Typography>
                           {user.teams && user.teams.length > 0 && (
                             <Typography variant="body2" color="text.secondary">
-                              Teams: {user.teams.map(team => team.teamName).join(', ')}
+                              Teams: {user.teams.map((team) => team.teamName).join(', ')}
                             </Typography>
                           )}
                         </Box>
@@ -210,7 +208,7 @@ const SearchResults = () => {
                           </Typography>
                           {team.members && team.members.length > 0 && (
                             <Typography variant="body2" color="text.secondary">
-                              Members: {team.members.map(member => (
+                              Members: {team.members.map((member) => (
                                 <Link
                                   key={member.uid}
                                   onClick={() => handleClick(member.uid, 'user')}
