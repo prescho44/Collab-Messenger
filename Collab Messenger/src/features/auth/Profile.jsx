@@ -57,6 +57,7 @@ const Profile = ({ userId }) => {
     }
   };
 
+
   const handleAddFriend = async () => {
     setFriendRequestLoading(true);
     try {
@@ -130,13 +131,17 @@ const Profile = ({ userId }) => {
         src={otherUserData.photo || editedData.photo}
         sx={{ width: 120, height: 120, margin: 'auto', mb: 2 }}
       />
+      <Typography variant="h4" mt={1}>
+        {otherUserData.handle}
+      </Typography>
+      <Typography variant="body2" mt={2}>
+        {otherUserData.username}
       <Typography variant="h4" mt={2}>
         {otherUserData.handle}
       </Typography>
       <Typography variant="body2" mt={1}>
         {otherUserData.email}
       </Typography>
-
       <Typography variant="body2" mt={1}>
         {otherUserData.phoneNumber}
       </Typography>
@@ -171,17 +176,8 @@ const Profile = ({ userId }) => {
               'Send Message'
             )}
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddFriend}
-            disabled={friendRequestLoading}
-          >
-            {friendRequestLoading ? (
-              <CircularProgress size={24} />
-            ) : (
-              'Add Friend'
-            )}
+          <Button variant="contained" color="primary" onClick={handleAddFriend}>
+            Add Friend
           </Button>
         </Box>
       )}

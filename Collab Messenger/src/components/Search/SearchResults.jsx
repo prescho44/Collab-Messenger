@@ -9,13 +9,17 @@ import {
   Card,
   CardContent,
   CardActions,
+  Avatar,
+  Link,
+  Grid,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { ref, onValue } from 'firebase/database';
 import { db } from '@/configs/firebaseConfig';
 
 const SearchResults = () => {
-  const [results, setResults] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const queryParam = new URLSearchParams(location.search).get('query');
@@ -26,6 +30,7 @@ const SearchResults = () => {
     const fetchResults = () => {
       if (!queryParam) return;
 
+      console.log('Fetching results for query:', queryParam); // Debug log
       setLoading(true);
       
       const usersRef = ref(db, 'users');
@@ -41,6 +46,7 @@ const SearchResults = () => {
               (user.handle && user.handle.toLowerCase().includes(queryParam.toLowerCase())) ||
               (user.email && user.email.toLowerCase().includes(queryParam.toLowerCase()))
             );
+            console.log('Fetched users:', users); // Debug log
             resolve(users);
           } else {
             resolve([]);
@@ -56,8 +62,9 @@ const SearchResults = () => {
               id, // Add id to team object
               ...team,
             })).filter((team) =>
-              team.name && team.name.toLowerCase().includes(queryParam.toLowerCase())
+              team.teamName && team.teamName.toLowerCase().includes(queryParam.toLowerCase())
             );
+            console.log('Fetched teams:', teams); // Debug log
             resolve(teams);
           } else {
             resolve([]);
@@ -66,12 +73,19 @@ const SearchResults = () => {
       });
 
       Promise.all([fetchUsers, fetchTeams]).then(([users, teams]) => {
-        const combinedResults = users.map(user => {
-          const userTeams = teams.filter(team => team.members && team.members.includes(user.uid));
-          return { ...user, teams: userTeams };
-        });
+        const combinedResults = [
+          ...users.map(user => {
+          const userTeams = teams.filter(team => team.members && Object.keys(team.members).includes(user.uid));
+          return { ...user, type: 'user', teams: userTeams };
+        }),
+        ...teams.map(team => {
+          const teamMembers = users.filter(user => team.members && Object.keys(team.members).includes(user.uid));
+          return { ...team, type: 'team', members: teamMembers };
+        })
+      ];
         console.log('Combined results:', combinedResults); // Debug log
-        setResults(combinedResults);
+        setUsers(users);
+        setTeams(teams);
         setLoading(false);
       }).catch((error) => {
         console.error('Error fetching search results:', error.message);
@@ -83,6 +97,7 @@ const SearchResults = () => {
   }, [queryParam]);
 
   const handleClick = (id, type) => {
+    console.log(`Navigating to ${type} with id: ${id}`); // Debug log
     if (type === 'user') {
       navigate(`/profile/${id}`);
     } else if (type === 'team') {
@@ -102,7 +117,6 @@ const SearchResults = () => {
       </Box>
     );
   }
-
   return (
     <Box
       p={5}
@@ -116,53 +130,125 @@ const SearchResults = () => {
           <Typography variant="h4" mb={4}>
             Search Results for "{queryParam}"
           </Typography>
-          {results.length > 0 ? (
-            <>
-              {results.map((result) => (
-                <Card key={result.uid || result.id} sx={{ mb: 4 }}>
-                  <CardContent>
-                    <Typography
-                      variant="h5"
-                      component="div"
-                      onClick={() => handleClick(result.uid || result.id, result.handle ? 'user' : 'team')}
-                      sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
-                    >
-                      {result.username || result.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                      {result.email || result.description}
-                    </Typography>
-                    {result.teams && result.teams.length > 0 && (
-                      <Typography variant="body2" color="text.secondary">
-                        Teams: {result.teams.map(team => team.name).join(', ')}
-                      </Typography>
-                    )}
-                  </CardContent>
-                  <CardActions>
-                    <Box display="flex" justifyContent="center" width="100%">
-                    <Button
-                      onClick={() => handleClick(result.uid || result.id, result.handle ? 'user' : 'team')}
-                      sx={{
-                        color: theme.palette.mode === 'dark' ? 'black' : 'white',
-                        backgroundColor: theme.palette.mode === 'dark' ? 'white' : 'primary.main',
-                      }} 
-                      variant="contained"
-                      size="small"
-                    >
-                      View {result.handle ? 'Profile' : 'Team'}
-                    </Button>
-                    </Box>
-                  </CardActions>
-                </Card>
-              ))}
-            </>
-          ) : (
-            <Typography>No results found.</Typography>
-          )}
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" mb={2}>Users</Typography>
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <Card key={user.uid} sx={{ mb: 4 }}>
+                    <CardContent>
+                      <Box display="flex" alignItems="center" flexDirection="column">
+                        <Avatar
+                          alt={user.handle}
+                          src={user.photo || '/default-avatar.jpg'}
+                          sx={{ width: 60, height: 60, mb: 0.5 }}
+                        />
+                        <Box>
+                          <Typography
+                            variant="h5"
+                            component="div"
+                            onClick={() => handleClick(user.uid, 'user')}
+                            sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' }, mb: 0.5 }}
+                          >
+                            {user.handle}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {user.email}
+                          </Typography>
+                          {user.teams && user.teams.length > 0 && (
+                            <Typography variant="body2" color="text.secondary">
+                              Teams: {user.teams.map(team => team.teamName).join(', ')}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </CardContent>
+                    <CardActions>
+                      <Box display="flex" justifyContent="center" width="100%">
+                        <Button
+                          onClick={() => handleClick(user.uid, 'user')}
+                          sx={{
+                            color: theme.palette.mode === 'dark' ? 'black' : 'white',
+                            backgroundColor: theme.palette.mode === 'dark' ? 'white' : 'primary.main',
+                          }} 
+                          variant="contained"
+                          size="small"
+                        >
+                          View Profile
+                        </Button>
+                      </Box>
+                    </CardActions>
+                  </Card>
+                ))
+              ) : (
+                <Typography>No users found.</Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" mb={2}>Teams</Typography>
+              {teams.length > 0 ? (
+                teams.map((team) => (
+                  <Card key={team.id} sx={{ mb: 4 }}>
+                    <CardContent>
+                      <Box display="flex" alignItems="center" flexDirection="column">
+                        <Avatar
+                          alt={team.teamName}
+                          src={team.photo || '/default-avatar.jpg'}
+                          sx={{ width: 60, height: 60, mb: 0.5 }}
+                        />
+                        <Box>
+                          <Typography
+                            variant="h5"
+                            component="div"
+                            onClick={() => handleClick(team.id, 'team')}
+                            sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' }, mb: 0.5 }}
+                          >
+                            {team.teamName}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {team.description}
+                          </Typography>
+                          {team.members && team.members.length > 0 && (
+                            <Typography variant="body2" color="text.secondary">
+                              Members: {team.members.map(member => (
+                                <Link
+                                  key={member.uid}
+                                  onClick={() => handleClick(member.uid, 'user')}
+                                  sx={{ cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
+                                >
+                                  {member.handle}
+                                </Link>
+                              )).reduce((prev, curr) => [prev, ', ', curr])}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </CardContent>
+                    <CardActions>
+                      <Box display="flex" justifyContent="center" width="100%">
+                        <Button
+                          onClick={() => handleClick(team.id, 'team')}
+                          sx={{
+                            color: theme.palette.mode === 'dark' ? 'black' : 'white',
+                            backgroundColor: theme.palette.mode === 'dark' ? 'white' : 'primary.main',
+                          }} 
+                          variant="contained"
+                          size="small"
+                        >
+                          View Team
+                        </Button>
+                      </Box>
+                    </CardActions>
+                  </Card>
+                ))
+              ) : (
+                <Typography>No teams found.</Typography>
+              )}
+            </Grid>
+          </Grid>
         </Box>
       </Stack>
     </Box>
   );
 };
-
 export default SearchResults;

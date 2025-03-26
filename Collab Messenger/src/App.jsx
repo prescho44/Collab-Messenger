@@ -25,6 +25,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Friends from './features/auth/Friends';
 import MakeNewChannel from './pages/MakeNewChannel';
 import DirectChatView from './pages/DirectChatView';
+import TeamDetails from './TeamsAndUsers/TeamDetails'; 
 
 const AppContent = () => {
   const location = useLocation();
@@ -110,7 +111,8 @@ const AppContent = () => {
             <Route path="/chat/:chatId" element={<DirectChatView />} />
             <Route path="/new-team" element={<MakeNewTeam />} />
             <Route path="/new-channel" element={<MakeNewChannel />} />
-            <Route path="/video-call/:teamId/:chatId" element={<VideoCallView />} />
+            <Route path="/video-call" element={<VideoCall />} />
+            <Route path="/teams/:teamId" element={<TeamDetails />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
