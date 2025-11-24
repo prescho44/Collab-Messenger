@@ -1,0 +1,97 @@
+{
+  "users": {
+    "user_1": {
+      "uid": "user_1",
+      "displayName": "Alice",
+      "email": "alice@example.com",
+      "photoURL": "https://i.pravatar.cc/150?img=1",
+      "status": "online",
+      "createdAt": 1732473600000
+    },
+    "user_2": {
+      "uid": "user_2",
+      "displayName": "Bob",
+      "email": "bob@example.com",
+      "photoURL": "https://i.pravatar.cc/150?img=2",
+      "status": "offline",
+      "createdAt": 1732477200000
+    },
+    "user_3": {
+      "uid": "user_3",
+      "displayName": "Charlie",
+      "email": "charlie@example.com",
+      "photoURL": "https://i.pravatar.cc/150?img=3",
+      "status": "away",
+      "createdAt": 1732480800000
+    }
+  },
+  "conversations": {
+    "conv_1": {
+      "participants": {
+        "user_1": true,
+        "user_2": true
+      },
+      "createdAt": 1732500000000,
+      "lastMessage": "msg_4"
+    },
+    "conv_2": {
+      "participants": {
+        "user_1": true,
+        "user_3": true
+      },
+      "createdAt": 1732510000000,
+      "lastMessage": "msg_7"
+    }
+  },
+  "messages": {
+    "msg_1": {
+      "conversationId": "conv_1",
+      "senderId": "user_1",
+      "text": "Hey Bob! How's it going?",
+      "timestamp": 1732500100000,
+      "read": true
+    },
+    "msg_2": {
+      "conversationId": "conv_1",
+      "senderId": "user_2",
+      "text": "Hi Alice! All good, just working on the project.",
+      "timestamp": 1732500200000,
+      "read": true
+    },
+    "msg_3": {
+      "conversationId": "conv_1",
+      "senderId": "user_1",
+      "text": "Great! Let me know if you need any help.",
+      "timestamp": 1732500300000,
+      "read": false
+    },
+    "msg_4": {
+      "conversationId": "conv_1",
+      "senderId": "user_2",
+      "text": "Sure thing, thanks!",
+      "timestamp": 1732500400000,
+      "read": false
+    },
+    "msg_5": {
+      "conversationId": "conv_2",
+      "senderId": "user_1",
+      "text": "Hey Charlie, did you see the latest update?",
+      "timestamp": 1732510100000,
+      "read": true
+    },
+    "msg_6": {
+      "conversationId": "conv_2",
+      "senderId": "user_3",
+      "text": "Yes! Looks awesome. Can't wait to test it.",
+      "timestamp": 1732510200000,
+      "read": true
+    },
+    "msg_7": {
+      "conversationId": "conv_2",
+      "senderId": "user_1",
+      "text": "Let's schedule a quick call tomorrow.",
+      "timestamp": 1732510300000,
+      "read": false
+    }
+  }
+}

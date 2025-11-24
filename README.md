@@ -2,6 +2,8 @@
 
 Collab-Messenger is a modern, real-time messaging application built with React.js and Vite. It leverages Firebase for authentication, database, and storage, providing a seamless experience for team collaboration, direct messaging, and video calls.
 
+!Example profile: test@gmail.com / 123456
+
 ## Features
 
 - **User Authentication**: Secure login and registration using Firebase Authentication.

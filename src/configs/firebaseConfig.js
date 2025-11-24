@@ -10,15 +10,14 @@ import { getStorage } from 'firebase/storage';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: 'AIzaSyBlrHW-2Y_qoGh_7ZkA3Pwk2t-G48zCPTI',
-  authDomain: 'collab-messenger-5e1e8.firebaseapp.com',
-  databaseURL:
-    'https://collab-messenger-5e1e8-default-rtdb.europe-west1.firebasedatabase.app',
-  projectId: 'collab-messenger-5e1e8',
-  storageBucket: 'collab-messenger-5e1e8.firebasestorage.app',
-  messagingSenderId: '11193950547',
-  appId: '1:11193950547:web:16790cb34ec1a3a0ea01a6',
-  measurementId: 'G-W7GWNY4SWY',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase

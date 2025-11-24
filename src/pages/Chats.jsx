@@ -1,8 +1,8 @@
-import { db } from '../configs/firebaseConfig';
-import { ref, onValue, set } from 'firebase/database';
-import { useState, useContext } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { AppContext } from '../store/app.context';
+import { db } from "../configs/firebaseConfig";
+import { ref, onValue, set } from "firebase/database";
+import { useState, useContext } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { AppContext } from "../store/app.context";
 import {
   Box,
   Button,
@@ -24,13 +24,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import useFetchTeams from '../hooks/useFetchTeams';
-import useFetchUsers from '../hooks/useFetchUsers';
-import AddMemberDialog from '../components/AddMemberDialog';
-import { createDirectChat } from '../components/DirectChat/CreateDirectChat';
-import { useEffect } from 'react';
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import useFetchTeams from "../hooks/useFetchTeams";
+import useFetchUsers from "../hooks/useFetchUsers";
+import AddMemberDialog from "../components/AddMemberDialog";
+import { createDirectChat } from "../components/DirectChat/CreateDirectChat";
+import { useEffect } from "react";
 
 export default function Chats() {
   const { userData } = useContext(AppContext);
@@ -38,36 +38,37 @@ export default function Chats() {
   const allUsers = useFetchUsers();
   const [members, setMembers] = useState([]);
   const [openAddMemberDialog, setOpenAddMemberDialog] = useState(false);
-  const [newMember, setNewMember] = useState('');
-  const [selectedUser, setSelectedUser] = useState('');
+  const [newMember, setNewMember] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { teamId } = useParams();
-  const [alignment, setAlignment] = useState('tabTeamsAndChat');
+  const [alignment, setAlignment] = useState("tabTeamsAndChat");
   const [directChats, setDirectChats] = useState([]);
 
   useEffect(() => {
     const fetchDirectChats = async () => {
       try {
-        const directChatsRef = ref(db, 'directChats');
+        const directChatsRef = ref(db, "directChats");
         onValue(directChatsRef, (snapshot) => {
           const data = snapshot.val();
-          const chats = data ? Object.keys(data).map((key) => ({ id: key, ...data[key] })) : [];
+          const chats = data
+            ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
+            : [];
           setDirectChats(chats);
         });
       } catch (error) {
-        console.error('Error fetching direct chats:', error);
+        console.error("Error fetching direct chats:", error);
       }
     };
 
     fetchDirectChats();
   }, []);
 
-
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
 
-    if (newAlignment === 'tabMembers') {
+    if (newAlignment === "tabMembers") {
       const currentTeam = teams.find((team) => team.id === teamId);
       setMembers(currentTeam?.members || []);
     }
@@ -80,7 +81,9 @@ export default function Chats() {
         onValue(teamRef, (snap) => resolve(snap.val()), { onlyOnce: true })
       );
       const members = snapshot || [];
-      const updatedMembers = members.filter((member) => member !== memberToKick);
+      const updatedMembers = members.filter(
+        (member) => member !== memberToKick
+      );
       await set(teamRef, updatedMembers);
 
       setMembers((prevMembers) =>
@@ -93,16 +96,23 @@ export default function Chats() {
       );
       const channels = channelsSnapshot || {};
       for (const channelId in channels) {
-        const participantsRef = ref(db, `channels/${teamId}/${channelId}/participants`);
+        const participantsRef = ref(
+          db,
+          `channels/${teamId}/${channelId}/participants`
+        );
         const participantsSnapshot = await new Promise((resolve) =>
-          onValue(participantsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+          onValue(participantsRef, (snap) => resolve(snap.val()), {
+            onlyOnce: true,
+          })
         );
         const participants = participantsSnapshot || [];
-        const updatedParticipants = participants.filter((participant) => participant !== memberToKick);
+        const updatedParticipants = participants.filter(
+          (participant) => participant !== memberToKick
+        );
         await set(participantsRef, updatedParticipants);
       }
     } catch (error) {
-      console.error('Error kicking member:', error);
+      console.error("Error kicking member:", error);
     }
   };
 
@@ -121,13 +131,20 @@ export default function Chats() {
 
         const channelsRef = ref(db, `channels/${teamId}`);
         const channelsSnapshot = await new Promise((resolve) =>
-          onValue(channelsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+          onValue(channelsRef, (snap) => resolve(snap.val()), {
+            onlyOnce: true,
+          })
         );
         const channels = channelsSnapshot || {};
         for (const channelId in channels) {
-          const participantsRef = ref(db, `channels/${teamId}/${channelId}/participants`);
+          const participantsRef = ref(
+            db,
+            `channels/${teamId}/${channelId}/participants`
+          );
           const participantsSnapshot = await new Promise((resolve) =>
-            onValue(participantsRef, (snap) => resolve(snap.val()), { onlyOnce: true })
+            onValue(participantsRef, (snap) => resolve(snap.val()), {
+              onlyOnce: true,
+            })
           );
           const participants = participantsSnapshot || [];
           if (!participants.includes(newMember)) {
@@ -137,51 +154,53 @@ export default function Chats() {
         }
       }
     } catch (error) {
-      console.error('Error adding member:', error);
+      console.error("Error adding member:", error);
     }
     setOpenAddMemberDialog(false);
-    setNewMember('');
+    setNewMember("");
   };
 
   const handleDialogClose = () => {
     setOpenAddMemberDialog(false);
-    setNewMember('');
+    setNewMember("");
   };
 
   const handleDirectChat = async () => {
     try {
       if (!selectedUser || !userData) {
-        console.error('Selected user or user data is missing');
+        console.error("Selected user or user data is missing");
         return;
       }
-    
+
       const selectedUserData = { handle: selectedUser }; // Create a user object with the handle
       const chatId = await createDirectChat(userData, selectedUserData);
       navigate(`/chat/${chatId}`);
     } catch (error) {
-      console.error('Error creating direct chat:', error);
+      console.error("Error creating direct chat:", error);
     }
   };
 
-  const isTeamChannelURL = /^\/teams\/[^/]+\/channels\/[^/]+$/.test(location.pathname);
+  const isTeamChannelURL = /^\/teams\/[^/]+\/channels\/[^/]+$/.test(
+    location.pathname
+  );
 
   return (
     <Container
       component="main"
       sx={{
-        position: 'relative',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'gray.100',
+        position: "relative",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "gray.100",
         padding: 2,
-        height: 'calc(100vh - 64px)',
-        overflow: 'auto',
+        height: "calc(100vh - 64px)",
+        overflow: "auto",
         marginBottom: 3,
       }}
     >
       {isTeamChannelURL && (
-        <Stack spacing={2} sx={{ alignItems: 'center', width: '100%' }}>
+        <Stack spacing={2} sx={{ alignItems: "center", width: "100%" }}>
           <ToggleButtonGroup
             color="primary"
             value={alignment}
@@ -200,7 +219,7 @@ export default function Chats() {
           variant="h4"
           fontWeight="bold"
           gutterBottom
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
         >
           Teams & Chats
         </Typography>
@@ -208,7 +227,7 @@ export default function Chats() {
           variant="contained"
           color="primary"
           sx={{ maxWidth: 200, mb: 2 }}
-          onClick={() => navigate('/new-team')}
+          onClick={() => navigate("/new-team")}
         >
           New Team
         </Button>
@@ -216,7 +235,7 @@ export default function Chats() {
           variant="contained"
           color="secondary"
           sx={{ maxWidth: 200, mb: 2, ml: 2 }}
-          onClick={() => navigate('/new-channel')}
+          onClick={() => navigate("/new-channel")}
         >
           New Channel
         </Button>
@@ -227,21 +246,21 @@ export default function Chats() {
           <CircularProgress color="primary" />
           <Typography color="primary">Loading teams...</Typography>
         </Stack>
-      ) : alignment === 'tabTeamsAndChat' ? (
+      ) : alignment === "tabTeamsAndChat" ? (
         <Box
           sx={{
             flex: 1,
-            overflowY: 'auto',
+            overflowY: "auto",
             paddingRight: 1,
-            '&::-webkit-scrollbar': {
-              width: '8px',
+            "&::-webkit-scrollbar": {
+              width: "8px",
             },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'background.paper',
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "background.paper",
             },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: 'primary.main',
-              borderRadius: '4px',
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "primary.main",
+              borderRadius: "4px",
             },
           }}
         >
@@ -250,7 +269,7 @@ export default function Chats() {
               <Card key={team.id} variant="outlined" sx={{ padding: 2 }}>
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: 'teal' }}>{team.name[0]}</Avatar>
+                    <Avatar sx={{ bgcolor: "teal" }}>{team.name[0]}</Avatar>
                     <Box>
                       <Typography variant="h6" fontWeight="bold">
                         {team.name}
@@ -261,7 +280,7 @@ export default function Chats() {
                     </Box>
                   </Stack>
                   <Divider sx={{ my: 2 }} />
-                  <Accordion sx={{ width: '100%', boxShadow: 'none' }}>
+                  <Accordion sx={{ width: "100%", boxShadow: "none" }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography variant="body2" color="primary">
                         View Channels
@@ -276,7 +295,9 @@ export default function Chats() {
                               label={channel.name}
                               size="small"
                               onClick={() =>
-                                navigate(`/teams/${team.id}/channels/${channel.id}`)
+                                navigate(
+                                  `/teams/${team.id}/channels/${channel.id}`
+                                )
                               }
                             />
                           ))
@@ -299,7 +320,7 @@ export default function Chats() {
               <Card key={chat.id} variant="outlined" sx={{ padding: 2 }}>
                 <CardContent>
                   <Stack direction="row" alignItems="center" spacing={2}>
-                    <Avatar sx={{ bgcolor: 'teal' }}>{chat.chatName[0]}</Avatar>
+                    <Avatar sx={{ bgcolor: "teal" }}>{chat.chatName[0]}</Avatar>
                     <Box>
                       <Typography variant="h6" fontWeight="bold">
                         {chat.chatName}
@@ -323,17 +344,17 @@ export default function Chats() {
         <Box
           sx={{
             flex: 1,
-            overflowY: 'auto',
+            overflowY: "auto",
             paddingRight: 1,
-            '&::-webkit-scrollbar': {
-              width: '8px',
+            "&::-webkit-scrollbar": {
+              width: "8px",
             },
-            '&::-webkit-scrollbar-track': {
-              backgroundColor: 'background.paper',
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "background.paper",
             },
-            '&::-webkit-scrollbar-thumb': {
-              backgroundColor: 'primary.main',
-              borderRadius: '4px',
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "primary.main",
+              borderRadius: "4px",
             },
           }}
         >
@@ -343,7 +364,7 @@ export default function Chats() {
                 <Card key={index} variant="outlined" sx={{ padding: 2 }}>
                   <CardContent>
                     <Stack direction="column" alignItems="center" spacing={2}>
-                      <Avatar sx={{ bgcolor: 'teal', width: 56, height: 56 }}>
+                      <Avatar sx={{ bgcolor: "teal", width: 56, height: 56 }}>
                         {member[0]}
                       </Avatar>
                       <Typography variant="h6" fontWeight="bold">
@@ -373,7 +394,8 @@ export default function Chats() {
               </Typography>
             )}
           </Stack>
-          {teams.find((team) => team.id === teamId)?.owner === userData?.handle && (
+          {teams.find((team) => team.id === teamId)?.owner ===
+            userData?.handle && (
             <Button
               variant="contained"
               color="primary"
@@ -404,16 +426,16 @@ export default function Chats() {
             onChange={(e) => setSelectedUser(e.target.value)}
             required
             sx={{
-              backgroundColor: 'gray.600',
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: 'teal',
+              backgroundColor: "gray.600",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "teal",
                 },
-                '&:hover fieldset': {
-                  borderColor: 'teal',
+                "&:hover fieldset": {
+                  borderColor: "teal",
                 },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'teal',
+                "&.Mui-focused fieldset": {
+                  borderColor: "teal",
                 },
               },
             }}
@@ -430,7 +452,7 @@ export default function Chats() {
         <Button
           variant="contained"
           color="primary"
-          sx={{ mt: 3, px: 4 , }}
+          sx={{ mt: 3, px: 4 }}
           onClick={handleDirectChat}
         >
           Start Direct Chat
